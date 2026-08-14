@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "touchflow-keyboard"
+version = "1.0.0"
+description = "Надёжная экранная клавиатура для Linux с мультитачем, авто-показом и глубокой кастомизацией"
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+requires-python = ">=3.10"
+authors = [{ name = "TouchFlow Contributors" }]
+keywords = ["on-screen-keyboard", "touchscreen", "linux", "accessibility", "multitouch"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: X11 Applications :: GTK",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Desktop Environment",
+]
+dependencies = [
+    "PyGObject>=3.42",
+    "tomli>=2.0; python_version < '3.11'",
+    "tomli-w>=1.0",
+    "pydbus>=0.6",
+]
+
+[project.optional-dependencies]
+linux = ["evdev>=1.6"]
+dev = ["pytest>=7.0", "ruff>=0.1"]
+
+[project.scripts]
+touchflowd = "touchflow.daemon:main"
+touchflow-settings = "touchflow_settings.app:main"
+touchflow-cli = "touchflow.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/touchflow/touchflow-keyboard"
+Documentation = "https://github.com/touchflow/touchflow-keyboard#readme"
+Repository = "https://github.com/touchflow/touchflow-keyboard"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["touchflow*", "touchflow_settings*"]
+
+[tool.setuptools.package-data]
+touchflow = ["data/*"]
+touchflow_settings = ["data/*"]

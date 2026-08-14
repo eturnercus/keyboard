@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=com.touchflow.Keyboard
+Exec=/usr/bin/touchflowd
+User=@USER@

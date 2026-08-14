@@ -1,0 +1,68 @@
+name: touchflow-keyboard
+version: '1.0.0'
+summary: Экранная клавиатура для сенсорных Linux-устройств
+description: |
+  TouchFlow — надёжная экранная клавиатура для Linux.
+  Мультитач, авто-показ, обучение, смена языков RU/EN,
+  оверлей-джойстик, работа до входа в систему.
+
+grade: stable
+confinement: classic
+base: core22
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+
+apps:
+  touchflowd:
+    command: bin/touchflowd
+    daemon: simple
+    restart-condition: on-failure
+    plugs:
+      - network
+      - x11
+      - wayland
+      - desktop
+      - desktop-legacy
+      - unity7
+      - browser-support
+      - gsettings
+      - a11y-control
+      - hardware-random
+      - raw-input
+
+  touchflow-settings:
+    command: bin/touchflow-settings
+    plugs:
+      - network
+      - x11
+      - wayland
+      - desktop
+      - gsettings
+      - a11y-control
+
+  touchflow-cli:
+    command: bin/touchflow-cli
+    plugs:
+      - network
+
+parts:
+  touchflow:
+    plugin: python
+    source: .
+    python-packages:
+      - pygobject
+      - pydbus
+      - tomli-w
+      - evdev
+    stage-packages:
+      - python3-gi
+      - gir1.2-gtk-4.0
+      - gir1.2-adw-1
+      - gir1.2-atspi-2.0
+      - at-spi2-core
+    override-build: |
+      craftctl default
+      install -Dm644 data/com.touchflow.Settings.desktop $SNAPCRAFT_PART_INSTALL/share/applications/
+      install -Dm644 assets/logo.svg $SNAPCRAFT_PART_INSTALL/share/icons/

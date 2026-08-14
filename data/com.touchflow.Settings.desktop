@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=TouchFlow Settings
+Comment=Configure TouchFlow on-screen keyboard
+Exec=touchflow-settings
+Icon=com.touchflow.Keyboard
+Terminal=false
+Type=Application
+Categories=Settings;Accessibility;Utility;
+StartupNotify=true

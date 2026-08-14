@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.touchflow.Keyboard</id>
+  <name>TouchFlow Keyboard</name>
+  <summary>Экранная клавиатура для сенсорных Linux-устройств</summary>
+  <description>
+    <p>TouchFlow — надёжная экранная клавиатура для Linux с мультитачем, авто-показом при фокусе на поле ввода, обучением, сменой языков (RU/EN и другие), оверлеем-джойстиком и глубокой кастомизацией.</p>
+    <p>Особенности:</p>
+    <ul>
+      <li>Авто-показ и авто-скрытие при подключении внешней клавиатуры</li>
+      <li>Свайп снизу для вызова клавиатуры</li>
+      <li>Управление обучением: правила per-app</li>
+      <li>Несколько языков с переключением кнопкой 🌐</li>
+      <li>Работа до входа в систему (GDM/LightDM/SDDM)</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">com.touchflow.Settings.desktop</launchable>
+  <developer_name>TouchFlow Contributors</developer_name>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <url type="homepage">https://github.com/eturnercus/keyboard</url>
+  <url type="bugtracker">https://github.com/eturnercus/keyboard/issues</url>
+  <content_rating type="oars-1.1"/>
+  <categories>
+    <category>Utility</category>
+    <category>Accessibility</category>
+  </categories>
+  <provides>
+    <binary>touchflowd</binary>
+    <binary>touchflow-settings</binary>
+    <binary>touchflow-cli</binary>
+  </provides>
+  <releases>
+    <release version="1.0.0" date="2026-08-14">
+      <description>
+        <p>Первый стабильный релиз:</p>
+        <ul>
+          <li>Мультиязычность: RU, EN, UK, DE, FR</li>
+          <li>Управление обучением в настройках</li>
+          <li>Обучение при первом запуске</li>
+          <li>Flathub, Snap, .deb пакеты</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>

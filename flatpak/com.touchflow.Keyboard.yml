@@ -1,0 +1,39 @@
+app-id: com.touchflow.Keyboard
+runtime: org.gnome.Platform
+runtime-version: '46'
+sdk: org.gnome.Sdk
+command: touchflowd
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --socket=session-bus
+  - --device=dri
+  - --talk-name=com.touchflow.Keyboard
+  - --filesystem=xdg-config/touchflow:create
+  - --filesystem=host
+  - --talk-name=org.a11y.Bus
+  - --own-name=com.touchflow.Keyboard
+  - --own-name=com.touchflow.Settings
+
+modules:
+  - name: libevdev
+    sources:
+      - type: archive
+        url: https://www.freedesktop.org/software/libevdev/libevdev-1.13.1.tar.xz
+        sha256: 1d8f5c6c8b0e0e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8
+    # Note: use system python-evdev via pip in practice
+
+  - name: touchflow-keyboard
+    buildsystem: simple
+    build-commands:
+      - pip3 install --prefix=/app --no-deps .
+    sources:
+      - type: dir
+        path: ..
+    post-install:
+      - install -Dm644 data/com.touchflow.Keyboard.desktop /app/share/applications/com.touchflow.Settings.desktop
+      - install -Dm644 data/com.touchflow.Settings.desktop /app/share/applications/com.touchflow.Settings.desktop
+      - install -Dm644 data/com.touchflow.Keyboard.metainfo.xml /app/share/metainfo/com.touchflow.Keyboard.metainfo.xml
+      - install -Dm644 assets/logo.svg /app/share/icons/hicolor/scalable/apps/com.touchflow.Keyboard.svg
+      - install -Dm644 systemd/touchflow-daemon.service /app/share/systemd/user/touchflow-daemon.service

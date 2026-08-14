@@ -1,0 +1,76 @@
+version = 2
+
+[colors]
+background = "#1e1e2e"
+key_background = "#313244"
+key_pressed = "#89b4fa"
+key_text = "#cdd6f4"
+accent = "#cba6f7"
+border = "#45475a"
+
+[typography]
+font_family = "Sans"
+font_size = 14
+label_size = 11
+bold_labels = false
+
+[layout]
+height_px = 280
+width_percent = 100
+key_spacing = 4
+key_radius = 8
+row_height = 52
+show_number_row = true
+show_function_row = true
+show_arrow_row = true
+show_numpad = false
+
+[behavior]
+auto_show = true
+auto_hide_on_blur = true
+hide_on_external_keyboard = true
+show_on_external_keyboard_disconnect = true
+swipe_from_bottom = true
+swipe_zone_height_px = 24
+swipe_threshold_px = 80
+startup_hidden = true
+multitouch_enabled = true
+
+[languages]
+show_switch_key = true
+show_current_lang_on_key = true
+cycle_on_switch = true
+
+[[languages.entries]]
+code = "ru"
+name = "Русский"
+enabled = true
+is_default = true
+
+[[languages.entries]]
+code = "en"
+name = "English"
+enabled = true
+is_default = false
+
+[learning]
+enabled = true
+threshold = 0.35
+dismiss_weight = 1.0
+show_weight = 0.5
+
+[[learning.rules]]
+app_id = "firefox"
+window_class = ""
+mode = "auto"
+
+[overlay]
+enabled = false
+opacity = 0.6
+joystick_enabled = true
+joystick_size_px = 140
+
+[greeter]
+enabled = true
+
+excluded_apps = ["touchflow-settings"]

@@ -1,0 +1,16 @@
+[Unit]
+Description=TouchFlow On-Screen Keyboard
+Documentation=https://github.com/touchflow/touchflow-keyboard
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=dbus
+BusName=com.touchflow.Keyboard
+ExecStart=/usr/bin/touchflowd
+Restart=on-failure
+RestartSec=3
+Environment=GTK_USE_PORTAL=0
+
+[Install]
+WantedBy=graphical-session.target

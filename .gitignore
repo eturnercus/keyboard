@@ -1,0 +1,16 @@
+# Build
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+**/__pycache__/
+
+# Config (local)
+.config/
+
+# IDE
+.vscode/
+.idea/
