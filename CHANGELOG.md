@@ -4,6 +4,9 @@
 
 Единый стабильный релиз TouchFlow Keyboard.
 
+### Fixed (2026-08-14 patch 3)
+- **Установка падала**: `NameError: os` в `ensure_atspi_bus()`
+
 ### Fixed (2026-08-14 patch 2)
 - **Демон падал на Debian 13 / GTK 4.18**: `GestureMultiPress` заменён на `GestureClick` через `gtk_compat`
 - **AT-SPI bus**: предупреждение вместо ошибки; автозапуск `at-spi-dbus-bus.service` при установке
