@@ -25,6 +25,7 @@ jobs:
         run: |
           bash scripts/build-release.sh
           bash scripts/build-appimage.sh
+          file dist/*.AppImage | grep 'ELF.*executable'
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
