@@ -58,6 +58,16 @@ def install_desktop_files(project_root: Path) -> Path:
     return apps / "com.touchflow.Keyboard.Virtual.desktop"
 
 
+def _last_journal_lines(n: int = 3) -> str:
+    r = subprocess.run(
+        ["journalctl", "--user", "-u", "touchflow-daemon", "-n", str(n), "--no-pager"],
+        capture_output=True,
+        text=True,
+    )
+    lines = [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip()]
+    return lines[-1] if lines else "journalctl --user -u touchflow-daemon -e"
+
+
 def write_systemd_service(project_root: Path) -> None:
     """Пишет user systemd unit с абсолютным путём."""
     svc_dir = _home() / ".config" / "systemd" / "user"
@@ -76,9 +86,8 @@ ExecStart={bin_path}
 Restart=on-failure
 RestartSec=3
 Environment=GTK_USE_PORTAL=0
-Environment=AT_SPI_BUS_ADDRESS=unix:path=/run/user/%U/at-spi/bus
-Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
-Environment=XDG_RUNTIME_DIR=/run/user/%U
+Environment=AT_SPI_BUS_ADDRESS=unix:path=%t/at-spi/bus
+PassEnvironment=WAYLAND_DISPLAY DISPLAY XAUTHORITY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE KDE_FULL_SESSION
 
 [Install]
 WantedBy=graphical-session.target
@@ -119,7 +128,17 @@ def enable_systemd_service() -> tuple[bool, str]:
         r = subprocess.run(cmd, capture_output=True, text=True)
         if r.returncode != 0 and len(cmd) > 2 and cmd[2] == "enable":
             return False, r.stderr or r.stdout
-    return True, "systemd service started"
+    import time
+
+    time.sleep(1)
+    r = subprocess.run(
+        ["systemctl", "--user", "is-active", "touchflow-daemon"],
+        capture_output=True,
+        text=True,
+    )
+    if r.returncode != 0 or r.stdout.strip() != "active":
+        return False, f"не active — {_last_journal_lines()}"
+    return True, "демон active"
 
 
 def verify_daemon_runtime() -> tuple[bool, str]:
@@ -133,7 +152,7 @@ def verify_daemon_runtime() -> tuple[bool, str]:
         text=True,
     )
     if r.returncode != 0 or r.stdout.strip() != "active":
-        return False, "демон не запущен (journalctl --user -u touchflow-daemon -e)"
+        return False, f"демон не запущен — {_last_journal_lines()}"
     try:
         from touchflow.dbus_client import dbus_show, dbus_status
 
@@ -237,7 +256,7 @@ def full_system_register(project_root: Path) -> str:
         "",
         "KDE/Wayland: Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow",
         "",
-        f"Демон: {'запущен' if ok else 'ошибка — journalctl --user -u touchflow-daemon'}",
+        f"Демон: {'запущен' if runtime_ok else 'ошибка — journalctl --user -u touchflow-daemon -e'}",
         f"Проверка D-Bus: {runtime_msg}",
         "",
         "Показать клавиатуру: touchflow-cli show  или кнопка в настройках",

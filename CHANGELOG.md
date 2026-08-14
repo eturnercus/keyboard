@@ -4,6 +4,9 @@
 
 Единый стабильный релиз TouchFlow Keyboard.
 
+### Fixed (2026-08-14 patch 4)
+- **Демон не стартовал из systemd**: `%U` в user-unit ломал XDG_RUNTIME_DIR; исправлено на `%t`, PassEnvironment для Wayland
+
 ### Fixed (2026-08-14 patch 3)
 - **Установка падала**: `NameError: os` в `ensure_atspi_bus()`
 

@@ -21,6 +21,9 @@ def test_systemd_not_hardcoded_usr():
     assert "Type=simple" in text
     assert "GTK_MODULES" not in text
     assert "AT_SPI_BUS_ADDRESS" in text
+    assert "/run/user/%U" not in text
+    assert "%t/at-spi" in text
+    assert "PassEnvironment=WAYLAND_DISPLAY" in text
 
 
 def test_version_is_1_0_0():
