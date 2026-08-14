@@ -31,12 +31,8 @@ jobs:
 
       - name: Build C++ (experimental)
         run: |
-          cd experimental/touchflow-cpp
-          CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build -j$(nproc)
-          mkdir -p ../../dist
-          cp build/touchflowd-cpp ../../dist/touchflowd-cpp-$(uname -m)
-          chmod +x ../../dist/touchflowd-cpp-*
+          bash scripts/build-appimage-cpp.sh
+          file dist/TouchFlow-Keyboard-Cpp-*.AppImage | grep 'ELF.*executable'
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -50,8 +46,10 @@ jobs:
             - `*.whl`, `*.tar.gz` — pip/sdist
 
             ### C++ 1.0.0 (experimental)
-            - `touchflowd-cpp-*` — нативный бинарник (GTK4)
-            - Сборка из исходников: `./scripts/install-cpp.sh`
+            - `TouchFlow-Keyboard-Cpp-*-*.AppImage` — графический установщик C++
+            - `touchflow-install-cpp-*.sh` — shell-установщик C++
+            - `touchflowd-cpp-*` — нативный бинарник (внутри AppImage)
+            - Сборка: `make appimage-cpp` или `./scripts/install-cpp.sh`
 
             ### Исправления
             - GTK4: `connect("pressed")` → `clicked` (краш демона)
@@ -62,5 +60,6 @@ jobs:
             dist/*.tar.gz
             dist/*.AppImage
             dist/touchflow-install-*.sh
+            dist/touchflow-install-cpp-*.sh
             dist/touchflowd-cpp-*
           generate_release_notes: false

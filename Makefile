@@ -1,4 +1,4 @@
-.PHONY: install uninstall test lint release clean flatpak snap deb
+.PHONY: install uninstall test lint release clean flatpak snap deb appimage appimage-cpp
 
 PREFIX ?= /usr/local
 VERSION := $(shell python3 -c "from touchflow import __version__; print(__version__)")
@@ -31,6 +31,9 @@ deb:
 appimage:
 	bash scripts/build-appimage.sh
 
+appimage-cpp:
+	bash scripts/build-appimage-cpp.sh
+
 clean:
 	rm -rf dist build *.egg-info .pytest_cache
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
@@ -39,6 +42,6 @@ clean:
 help:
 	@echo "TouchFlow Keyboard $(VERSION)"
 	@echo "  make install   - Install for current user"
-	@echo "  make release   - Build release packages"
+	@echo "  make appimage-cpp - Build C++ experimental AppImage installer"
 	@echo "  make test      - Run tests"
 	@echo "  make lint      - Run linter"
