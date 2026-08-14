@@ -49,8 +49,14 @@ class SettingsApp(Adw.Application):
         self._win.set_default_size(960, 680)
 
         header = Adw.HeaderBar()
+        show_btn = Gtk.Button(label="Показать клавиатуру")
+        show_btn.add_css_class("suggested-action")
+        show_btn.connect("clicked", self._show_keyboard)
+        header.pack_start(show_btn)
+        hide_btn = Gtk.Button(label="Скрыть")
+        hide_btn.connect("clicked", self._hide_keyboard)
+        header.pack_start(hide_btn)
         save_btn = Gtk.Button(label="Сохранить")
-        save_btn.add_css_class("suggested-action")
         save_btn.connect("clicked", self._save)
         header.pack_end(save_btn)
         apply_btn = Gtk.Button(label="Применить")
@@ -96,12 +102,40 @@ class SettingsApp(Adw.Application):
     def _apply(self, *_):
         save_config(self.config)
         try:
-            from pydbus import SessionBus
-            bus = SessionBus()
-            proxy = bus.get("com.touchflow.Keyboard", "/com/touchflow/Keyboard")
-            proxy.ReloadConfig()
+            from touchflow.dbus_client import dbus_call
+
+            dbus_call("ReloadConfig")
         except Exception:
             pass
+
+    def _show_keyboard(self, *_):
+        try:
+            from touchflow.dbus_client import dbus_show
+
+            dbus_show()
+        except Exception as e:
+            self._daemon_error_dialog(
+                "Не удалось показать клавиатуру",
+                f"Демон не запущен или D-Bus недоступен.\n\n{e}\n\n"
+                "Выполните: systemctl --user restart touchflow-daemon",
+            )
+
+    def _hide_keyboard(self, *_):
+        try:
+            from touchflow.dbus_client import dbus_hide
+
+            dbus_hide()
+        except Exception as e:
+            self._daemon_error_dialog("Не удалось скрыть клавиатуру", str(e))
+
+    def _daemon_error_dialog(self, title: str, body: str) -> None:
+        dialog = Adw.MessageDialog(
+            transient_for=self._win,
+            heading=title,
+            body=body,
+        )
+        dialog.add_response("ok", "OK")
+        dialog.present()
 
     def _build_behavior(self) -> Gtk.Widget:
         cfg = self._app_cfg = self.config

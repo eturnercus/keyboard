@@ -19,7 +19,7 @@ def _parse_devices(text: str) -> list[dict[str, str]]:
         info: dict[str, str] = {}
         for line in block.splitlines():
             if line.startswith("I:"):
-                m = re.search(r"bus=(\S+)", line)
+                m = re.search(r"bus=(\S+)", line, re.IGNORECASE)
                 if m:
                     info["bus"] = m.group(1)
             elif line.startswith("N:"):
@@ -40,42 +40,50 @@ def list_keyboards() -> list[dict[str, str]]:
     return _parse_devices(text)
 
 
-def has_external_keyboard() -> bool:
-    """True если обнаружена хотя бы одна физическая клавиатура (не виртуальная)."""
+def _is_keyboard_device(dev: dict[str, str]) -> bool:
+    name = dev.get("name", "").lower()
+    handlers = dev.get("handlers", "")
+    skip_patterns = (
+        "touchflow",
+        "virtual",
+        "uinput",
+        "dummy",
+        "power button",
+        "sleep button",
+        "video bus",
+        "gpio",
+    )
+    if any(p in name for p in skip_patterns):
+        return False
+    return "event" in handlers and "kbd" in handlers
+
+
+def has_pluggable_keyboard() -> bool:
+    """USB / Bluetooth / I2C HID — блокирует авто-показ при hide_on_external_keyboard."""
     for dev in list_keyboards():
-        name = dev.get("name", "").lower()
+        if not _is_keyboard_device(dev):
+            continue
         bus = dev.get("bus", "")
-        handlers = dev.get("handlers", "")
-
-        # Пропускаем виртуальные устройства и наши собственные
-        skip_patterns = (
-            "touchflow",
-            "virtual",
-            "uinput",
-            "dummy",
-            "power button",
-            "sleep button",
-            "video bus",
-            "gpio",
-        )
-        if any(p in name for p in skip_patterns):
-            continue
-
-        # evdev handler eventN
-        if "event" not in handlers:
-            continue
-
-        # USB / Bluetooth / I2C HID клавиатуры
-        if bus in ("0003", "0005", "0018") or "kbd" in handlers:
-            log.debug("External keyboard: %s (%s)", name, bus)
+        if bus in ("0003", "0005", "0018"):
+            log.debug("Pluggable keyboard: %s (%s)", dev.get("name"), bus)
             return True
-
-        # Встроенные клавиатуры ноутбуков (i8042)
-        if bus == "0011" and "kbd" in handlers:
-            log.debug("Built-in keyboard: %s", name)
-            return True
-
     return False
+
+
+def has_builtin_keyboard() -> bool:
+    """Встроенная клавиатура ноутбука (i8042) — не блокирует авто-показ."""
+    for dev in list_keyboards():
+        if not _is_keyboard_device(dev):
+            continue
+        if dev.get("bus") == "0011":
+            log.debug("Built-in keyboard: %s", dev.get("name"))
+            return True
+    return False
+
+
+def has_external_keyboard() -> bool:
+    """Любая физическая клавиатура (для диагностики)."""
+    return has_pluggable_keyboard() or has_builtin_keyboard()
 
 
 class ExternalKeyboardMonitor:
@@ -83,14 +91,14 @@ class ExternalKeyboardMonitor:
 
     def __init__(self, on_change=None):
         self._on_change = on_change
-        self._connected = has_external_keyboard()
+        self._connected = has_pluggable_keyboard()
 
     @property
     def connected(self) -> bool:
         return self._connected
 
     def poll(self) -> bool:
-        current = has_external_keyboard()
+        current = has_pluggable_keyboard()
         if current != self._connected:
             self._connected = current
             if self._on_change:

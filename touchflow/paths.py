@@ -144,8 +144,13 @@ def ensure_pip_scripts(names: tuple[str, ...] = ()) -> list[str]:
 
 def doctor_report() -> tuple[bool, str]:
     """Проверка установки; возвращает (ok, текст)."""
+    import subprocess
+
+    from touchflow.external_kb import has_builtin_keyboard, has_pluggable_keyboard
+
     lines: list[str] = ["=== TouchFlow Doctor ===", ""]
     ok = True
+    warnings: list[str] = []
 
     bin_dir = local_bin_dir()
     lines.append(f"~/.local/bin: {bin_dir} {'✓' if bin_dir.is_dir() else '✗'}")
@@ -166,15 +171,103 @@ def doctor_report() -> tuple[bool, str]:
     if Path(cpp).exists():
         lines.append(f"  touchflowd-cpp: {cpp} ✓ (C++)")
         if Path(resolve_cmd("touchflow-settings-cpp")).exists():
-            lines.append(f"  touchflow-settings-cpp: ✓")
+            lines.append("  touchflow-settings-cpp: ✓")
 
     svc = home() / ".config/systemd/user/touchflow-daemon.service"
-    lines.append(f"\nsystemd (Python): {'✓' if svc.exists() else '— не установлен'}")
+    lines.append(f"\nsystemd unit: {'✓' if svc.exists() else '— не установлен'}")
+
+    daemon_active = False
+    if shutil.which("systemctl"):
+        r = subprocess.run(
+            ["systemctl", "--user", "is-active", "touchflow-daemon"],
+            capture_output=True,
+            text=True,
+        )
+        daemon_active = r.returncode == 0 and r.stdout.strip() == "active"
+        lines.append(f"демон запущен: {'✓' if daemon_active else '✗ НЕ ЗАПУЩЕН'}")
+        if not daemon_active:
+            ok = False
+            warnings.append("  systemctl --user restart touchflow-daemon")
+            warnings.append("  journalctl --user -u touchflow-daemon -e")
+
+    dbus_ok = False
+    dbus_visible = False
+    try:
+        from touchflow.dbus_client import dbus_status
+
+        st = dbus_status()
+        dbus_ok = True
+        dbus_visible = bool(st["visible"])
+        lines.append(
+            f"D-Bus: ✓ v{st['version']}, видима={'да' if dbus_visible else 'нет'}, "
+            f"USB/BT клавиатура={'да' if st['external_keyboard'] else 'нет'}"
+        )
+    except Exception as e:
+        lines.append(f"D-Bus: ✗ недоступен ({e})")
+        if daemon_active:
+            ok = False
+
+    atspi_sock = Path(f"/run/user/{os.getuid()}/at-spi/bus")
+    lines.append(f"AT-SPI bus: {'✓' if atspi_sock.exists() else '✗ нет сокета'}")
+    if not atspi_sock.exists():
+        ok = False
+        warnings.append("  sudo apt install at-spi2-core dbus-x11 && перелогин")
+
+    atspi_py = False
+    try:
+        import gi
+
+        gi.require_version("Atspi", "2.0")
+        from gi.repository import Atspi  # noqa: F401
+
+        atspi_py = True
+    except (ImportError, ValueError):
+        pass
+    lines.append(f"AT-SPI Python: {'✓' if atspi_py else '✗ python3-atspi / gir1.2-atspi-2.0'}")
+    if not atspi_py:
+        ok = False
+
+    layer_shell = False
+    try:
+        import gi
+
+        gi.require_version("Gtk4LayerShell", "1.0")
+        from gi.repository import Gtk4LayerShell  # noqa: F401
+
+        layer_shell = True
+    except (ImportError, ValueError):
+        pass
+    lines.append(
+        f"gtk4-layer-shell: {'✓' if layer_shell else '⚠ рекомендуется на Wayland (gir1.2-layer-shell-0)'}"
+    )
+
+    session = os.environ.get("XDG_SESSION_TYPE", "?")
+    lines.append(f"Сессия: {session}")
+    if session == "x11":
+        warnings.append("  KDE виртуальная клавиатура работает только на Wayland")
 
     virtual = local_apps_dir() / "com.touchflow.Keyboard.Virtual.desktop"
     lines.append(f"KDE desktop: {'✓' if virtual.exists() else '✗'}")
     if not virtual.exists():
         ok = False
+
+    kde_im = ""
+    for reader in ("kreadconfig6", "kreadconfig5"):
+        if shutil.which(reader):
+            r = subprocess.run(
+                [reader, "--file", "kwinrc", "--group", "Wayland", "--key", "InputMethod"],
+                capture_output=True,
+                text=True,
+            )
+            kde_im = (r.stdout or "").strip()
+            break
+    if kde_im:
+        touchflow_selected = "touchflow" in kde_im.lower()
+        lines.append(f"KDE InputMethod: {kde_im} {'✓' if touchflow_selected else '⚠ выберите TouchFlow в настройках'}")
+        if not touchflow_selected:
+            warnings.append("  KDE: Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow")
+    elif session == "wayland":
+        lines.append("KDE InputMethod: — (не KDE или kreadconfig недоступен)")
 
     settings_desktop = local_apps_dir() / "com.touchflow.Settings.desktop"
     if settings_desktop.exists():
@@ -197,14 +290,27 @@ def doctor_report() -> tuple[bool, str]:
         lines.append("\nuinput: ⚠ нет доступа — sudo usermod -aG input $USER && перелогин")
         ok = False
 
+    if has_pluggable_keyboard():
+        lines.append("USB/BT клавиатура: подключена (авто-показ отключён при «Скрывать при внешней клавиатуре»)")
+        warnings.append("  Показ вручную: touchflow-cli show или кнопка в настройках")
+    elif has_builtin_keyboard():
+        lines.append("Встроенная клавиатура: есть (не блокирует авто-показ)")
+
     gtk_ini = home() / ".config" / "gtk-4.0" / "settings.ini"
     if gtk_ini.exists() and "gtk-modules" in gtk_ini.read_text(encoding="utf-8", errors="replace"):
         lines.append("\ngtk-4.0/settings.ini: ⚠ удалите gtk-modules (touchflow-doctor --fix)")
+
+    if dbus_ok and not dbus_visible:
+        warnings.append("  Показать сейчас: touchflow-cli show")
 
     if not path_ok:
         lines.append(f"\nДля текущего терминала: export PATH=\"{bin_dir}:$PATH\"")
         lines.append("Или перелогиньтесь / перезапустите KDE")
 
+    if warnings:
+        lines.append("\nПодсказки:")
+        lines.extend(warnings)
+
     lines.append("")
-    lines.append("OK — всё в порядке" if ok else "ЕСТЬ ПРОБЛЕМЫ — запустите: ./scripts/install.sh")
+    lines.append("OK — всё в порядке" if ok else "ЕСТЬ ПРОБЛЕМЫ — см. выше")
     return ok, "\n".join(lines)

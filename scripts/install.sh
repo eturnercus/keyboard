@@ -16,7 +16,12 @@ if command -v apt-get &>/dev/null; then
     sudo apt-get install -y \
         python3 python3-pip python3-gi python3-gi-cairo gir1.2-gtk-4.0 \
         gir1.2-adw-1 gir1.2-atspi-2.0 python3-evdev at-spi2-core dbus-x11 \
-        zenity 2>/dev/null || true
+        dbus-user-session zenity \
+        gir1.2-layer-shell-0 libgtk-4-layer-shell1 2>/dev/null || \
+    sudo apt-get install -y \
+        python3 python3-pip python3-gi python3-gi-cairo gir1.2-gtk-4.0 \
+        gir1.2-adw-1 gir1.2-atspi-2.0 python3-evdev at-spi2-core dbus-x11 \
+        dbus-user-session zenity 2>/dev/null || true
 elif command -v dnf &>/dev/null; then
     sudo dnf install -y python3-gobject gtk4 libadwaita at-spi2-core python3-evdev zenity
 elif command -v pacman &>/dev/null; then
@@ -54,6 +59,7 @@ echo "✓ TouchFlow установлен!"
 SETTINGS=$(python3 -c "from touchflow.paths import resolve_cmd; print(resolve_cmd('touchflow-settings'))" 2>/dev/null || echo "touchflow-settings")
 echo "  Настройки: $SETTINGS"
 echo "  Проверка: touchflow-doctor"
+echo "  Показать клавиатуру: touchflow-cli show"
 echo "  KDE: Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow"
 echo "  Демон: systemctl --user status touchflow-daemon"
 echo "  Перелогиньтесь для группы input и PATH."

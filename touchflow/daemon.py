@@ -37,7 +37,8 @@ log = logging.getLogger("touchflowd")
 
 
 class TouchFlowDaemon:
-    def __init__(self):
+    def __init__(self, virtual_keyboard: bool = False):
+        self._virtual_keyboard = virtual_keyboard
         self.config = load_config()
         self.injector = KeyInjector()
         self.learning = LearningEngine(config=self.config.learning)
@@ -72,8 +73,8 @@ class TouchFlowDaemon:
             self._setup_services()
             if is_first_run():
                 show_onboarding_if_needed(self._window)
-            if not self.config.behavior.startup_hidden:
-                self.show_keyboard()
+            if self._virtual_keyboard or not self.config.behavior.startup_hidden:
+                self.show_keyboard(manual=self._virtual_keyboard)
 
         app.connect("activate", on_activate)
         return app.run(argv if argv is not None else sys.argv)
@@ -187,6 +188,7 @@ class TouchFlowDaemon:
 
         if self._window:
             self._window.set_visible(True)
+            self._window.present()
             self._visible = True
             self._show_time = time.time()
             self._manual_show = manual
@@ -273,11 +275,21 @@ class TouchFlowDaemon:
 
 def main() -> None:
     import argparse
+
+    from touchflow.dbus_client import try_show_existing_daemon
+
     parser = argparse.ArgumentParser(description="TouchFlow keyboard daemon")
-    parser.add_argument("--virtual-keyboard", action="store_true",
-                        help="Launched from KDE/GNOME virtual keyboard settings")
+    parser.add_argument(
+        "--virtual-keyboard",
+        action="store_true",
+        help="Launched from KDE/GNOME virtual keyboard settings",
+    )
     args, remaining = parser.parse_known_args()
     if args.virtual_keyboard:
-        logging.getLogger("touchflowd").info("Started as system virtual keyboard")
-    daemon = TouchFlowDaemon()
+        log.info("Virtual keyboard launch requested")
+        if try_show_existing_daemon():
+            log.info("Forwarded show to running daemon")
+            return
+        log.info("Starting daemon for virtual keyboard")
+    daemon = TouchFlowDaemon(virtual_keyboard=args.virtual_keyboard)
     sys.exit(daemon.run(remaining if remaining else sys.argv))

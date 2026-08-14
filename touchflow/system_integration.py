@@ -94,6 +94,28 @@ def enable_systemd_service() -> tuple[bool, str]:
     return True, "systemd service started"
 
 
+def verify_daemon_runtime() -> tuple[bool, str]:
+    """Проверка что демон отвечает по D-Bus после установки."""
+    import time
+
+    time.sleep(2)
+    r = subprocess.run(
+        ["systemctl", "--user", "is-active", "touchflow-daemon"],
+        capture_output=True,
+        text=True,
+    )
+    if r.returncode != 0 or r.stdout.strip() != "active":
+        return False, "демон не запущен (journalctl --user -u touchflow-daemon -e)"
+    try:
+        from touchflow.dbus_client import dbus_show, dbus_status
+
+        st = dbus_status()
+        dbus_show()
+        return True, f"D-Bus OK (v{st['version']}), тест показа клавиатуры отправлен"
+    except Exception as e:
+        return False, f"D-Bus недоступен: {e}"
+
+
 def register_kde_virtual_keyboard(virtual_desktop: Path) -> None:
     """Регистрация в KDE: Параметры системы → Виртуальные клавиатуры."""
     if not virtual_desktop.exists():
@@ -158,6 +180,10 @@ def full_system_register(project_root: Path) -> str:
     if not ok:
         log.warning("systemd: %s", msg)
 
+    runtime_ok, runtime_msg = verify_daemon_runtime()
+    if not runtime_ok:
+        log.warning("Runtime check: %s", runtime_msg)
+
     register_kde_virtual_keyboard(virtual)
     register_gnome_screen_keyboard(True)
 
@@ -182,6 +208,9 @@ def full_system_register(project_root: Path) -> str:
         "KDE/Wayland: Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow",
         "",
         f"Демон: {'запущен' if ok else 'ошибка — journalctl --user -u touchflow-daemon'}",
+        f"Проверка D-Bus: {runtime_msg}",
+        "",
+        "Показать клавиатуру: touchflow-cli show  или кнопка в настройках",
         "",
         doctor,
     ]

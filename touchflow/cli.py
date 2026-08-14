@@ -6,19 +6,6 @@ import argparse
 import sys
 
 
-def _dbus_call(method: str, *args):
-    try:
-        from pydbus import SessionBus
-
-        bus = SessionBus()
-        proxy = bus.get("com.touchflow.Keyboard", "/com/touchflow/Keyboard")
-        getattr(proxy, method)(*args)
-        return 0
-    except Exception as e:
-        print(f"Error: daemon not running or D-Bus unavailable: {e}", file=sys.stderr)
-        return 1
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(prog="touchflow-cli", description="TouchFlow command line interface")
     sub = parser.add_subparsers(dest="command")
@@ -29,6 +16,7 @@ def main() -> None:
     sub.add_parser("reload", help="Reload configuration")
     sub.add_parser("reset-learning", help="Reset learning data")
     sub.add_parser("overlay", help="Toggle gamepad overlay")
+    sub.add_parser("status", help="Daemon status via D-Bus")
 
     args = parser.parse_args()
     commands = {
@@ -39,8 +27,27 @@ def main() -> None:
         "reset-learning": ("ResetLearning", []),
         "overlay": ("ToggleOverlay", []),
     }
+    if args.command == "status":
+        try:
+            from touchflow.dbus_client import dbus_status
+
+            st = dbus_status()
+            print(f"version: {st['version']}")
+            print(f"visible: {st['visible']}")
+            print(f"external_keyboard: {st['external_keyboard']}")
+            sys.exit(0)
+        except Exception as e:
+            print(f"Error: daemon not running or D-Bus unavailable: {e}", file=sys.stderr)
+            sys.exit(1)
     if args.command in commands:
+        from touchflow.dbus_client import dbus_call
+
         method, params = commands[args.command]
-        sys.exit(_dbus_call(method, *params))
+        try:
+            dbus_call(method, *params)
+            sys.exit(0)
+        except Exception as e:
+            print(f"Error: daemon not running or D-Bus unavailable: {e}", file=sys.stderr)
+            sys.exit(1)
     parser.print_help()
     sys.exit(1)

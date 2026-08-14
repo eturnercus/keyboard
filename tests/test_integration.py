@@ -23,9 +23,9 @@ def test_systemd_not_hardcoded_usr():
     assert "AT_SPI_BUS_ADDRESS" in text
 
 
-def test_version_is_1_0_0():
+def test_version_is_1_0_1():
     from touchflow import __version__
-    assert __version__ == "1.0.0"
+    assert __version__ == "1.0.1"
 
 
 def test_uninstall_script_exists():
