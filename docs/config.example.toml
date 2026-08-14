@@ -24,6 +24,7 @@ show_number_row = true
 show_function_row = true
 show_arrow_row = true
 show_numpad = false
+show_quick_actions = true
 
 [behavior]
 auto_show = true

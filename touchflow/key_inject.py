@@ -110,6 +110,46 @@ class KeyInjector:
         self._ui.write(ec.EV_KEY, keycode, 0)
         self._ui.syn()
 
+    def chord(self, *key_names: str) -> None:
+        """Нажать комбинацию клавиш, например Ctrl+C."""
+        if not self._ui:
+            return
+        ec = self._ecodes
+        codes: list[int] = []
+        for name in key_names:
+            code = getattr(ec, name, None)
+            if code is None:
+                code = ec.KEY.get(KEY_MAP.get(name, name), None)
+            if code is not None:
+                codes.append(code)
+        for code in codes:
+            self._ui.write(ec.EV_KEY, code, 1)
+            self._ui.syn()
+        for code in reversed(codes):
+            self._ui.write(ec.EV_KEY, code, 0)
+            self._ui.syn()
+
+    def copy(self) -> None:
+        self.chord("KEY_LEFTCTRL", "KEY_C")
+
+    def paste(self) -> None:
+        self.chord("KEY_LEFTCTRL", "KEY_V")
+
+    def cut(self) -> None:
+        self.chord("KEY_LEFTCTRL", "KEY_X")
+
+    def select_all(self) -> None:
+        self.chord("KEY_LEFTCTRL", "KEY_A")
+
+    def undo(self) -> None:
+        self.chord("KEY_LEFTCTRL", "KEY_Z")
+
+    def redo(self) -> None:
+        self.chord("KEY_LEFTCTRL", "KEY_Y")
+
+    def find(self) -> None:
+        self.chord("KEY_LEFTCTRL", "KEY_F")
+
     def type_text(self, char: str) -> None:
         if not self._ui or len(char) != 1:
             return

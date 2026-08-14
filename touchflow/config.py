@@ -58,6 +58,7 @@ class Layout:
     show_numpad: bool = False
     numpad_side: str = "right"  # left | right
     compact_mode: bool = False
+    show_quick_actions: bool = True
 
 
 @dataclass

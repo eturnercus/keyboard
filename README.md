@@ -29,6 +29,34 @@ cd keyboard
 
 Перелогиньтесь для группы `input`.
 
+### AppImage (установщик в один клик)
+
+```bash
+make appimage
+# → dist/TouchFlow-Keyboard-1.0.1-x86_64.AppImage
+
+chmod +x dist/TouchFlow-Keyboard-*.AppImage
+./dist/TouchFlow-Keyboard-*.AppImage
+```
+
+AppImage откроет графический установщик: поставит зависимости, touchflowd, systemd и desktop-файлы.
+
+### Быстрые кнопки
+
+На клавиатуре есть ряд быстрых действий:
+
+| Кнопка | Действие |
+|--------|----------|
+| Копир. | Ctrl+C |
+| Встав. | Ctrl+V |
+| Вырез. | Ctrl+X |
+| Всё | Ctrl+A (выделить всё) |
+| Отмена | Ctrl+Z |
+| Повт. | Ctrl+Y |
+| Поиск | Ctrl+F |
+
+Включить/выключить: **Настройки → Раскладка → Быстрые кнопки**
+
 ### Магазины Linux
 
 | Платформа | Команда |
