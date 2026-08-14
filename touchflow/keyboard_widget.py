@@ -59,16 +59,21 @@ class TouchKey(Gtk.Button):
         self.add_css_class("touchflow-key")
         self.set_hexpand(True)
         self.set_vexpand(True)
-        self.connect("pressed", self._on_pressed)
+        # GTK4: у Gtk.Button нет сигнала "pressed", только "clicked"
+        self.connect("clicked", self._on_clicked)
 
         if config.behavior.multitouch_enabled:
             gesture = Gtk.GestureMultiPress.new()
             gesture.set_exclusive(False)
-            gesture.connect("pressed", lambda *_: self._fire())
+            gesture.connect("pressed", self._on_gesture_pressed)
             self.add_controller(gesture)
 
-    def _on_pressed(self, *_):
+    def _on_clicked(self, *_):
         self._fire()
+
+    def _on_gesture_pressed(self, gesture, n_press, x, y):
+        if n_press == 1:
+            self._fire()
 
     def _fire(self):
         action = self.action

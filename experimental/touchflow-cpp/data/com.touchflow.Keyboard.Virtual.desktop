@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=TouchFlow
+Name[ru]=TouchFlow
+GenericName=Virtual Keyboard
+GenericName[ru]=Виртуальная клавиатура
+Comment=TouchFlow on-screen keyboard (C++ experimental)
+Comment[ru]=Экранная клавиатура TouchFlow (C++, экспериментальная)
+Exec=touchflowd-cpp --virtual-keyboard
+Icon=com.touchflow.Keyboard
+Terminal=false
+Categories=Utility;Accessibility;
+Keywords=keyboard;touchscreen;virtual;клавиатура;экранная;
+StartupNotify=false
+X-KDE-Wayland-VirtualKeyboard=true
+X-GNOME-Autostart-enabled=true

@@ -7,7 +7,26 @@ def test_virtual_desktop_has_kde_key():
     assert "touchflowd" in text
 
 
+def test_kde_registration_uses_desktop_basename():
+    import inspect
+    from touchflow import system_integration
+    src = inspect.getsource(system_integration.register_kde_virtual_keyboard)
+    assert "desktop_id = virtual_desktop.name" in src
+    assert "InputMethod\", desktop_id]" in src
+
+
 def test_systemd_not_hardcoded_usr():
     text = Path("systemd/touchflow-daemon.service").read_text(encoding="utf-8")
     assert "/usr/bin/touchflowd" not in text
     assert "Type=simple" in text
+
+
+def test_version_is_1_0_0():
+    from touchflow import __version__
+    assert __version__ == "1.0.0"
+
+
+def test_keyboard_uses_clicked_not_pressed_signal():
+    text = Path("touchflow/keyboard_widget.py").read_text(encoding="utf-8")
+    assert 'connect("clicked"' in text
+    assert 'connect("pressed", self._on_pressed)' not in text

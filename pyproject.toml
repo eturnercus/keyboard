@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "touchflow-keyboard"
-version = "1.0.3"
+version = "1.0.0"
 description = "Надёжная экранная клавиатура для Linux с мультитачем, авто-показом и глубокой кастомизацией"
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }

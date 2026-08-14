@@ -1,21 +1,19 @@
-#include <adwaita.h>
-#include "keyboard_window.hpp"
-#include "key_injector.hpp"
+#include "daemon.hpp"
+#include <iostream>
+#include <cstring>
 
-static void on_activate(AdwApplication* app, gpointer) {
-    KeyInjector injector;
-    auto* win = adw_application_window_new(GTK_APPLICATION(app));
-    adw_application_window_set_content(ADW_APPLICATION_WINDOW(win),
-        touchflow_keyboard_window_new(&injector));
-    gtk_window_set_title(GTK_WINDOW(win), "TouchFlow C++");
-    gtk_window_set_default_size(GTK_WINDOW(win), 800, 280);
-    gtk_window_present(GTK_WINDOW(win));
-}
+static const char* VERSION = "1.0.0";
 
 int main(int argc, char* argv[]) {
-    auto* app = adw_application_new("com.touchflow.Keyboard.Cpp", G_APPLICATION_DEFAULT_FLAGS);
-    g_signal_connect(app, "activate", G_CALLBACK(on_activate), nullptr);
-    int status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
-    return status;
+    bool virtual_kb = false;
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--virtual-keyboard") == 0)
+            virtual_kb = true;
+        else if (std::strcmp(argv[i], "--version") == 0) {
+            std::cout << "touchflowd-cpp " << VERSION << " (experimental C++)\n";
+            return 0;
+        }
+    }
+    touchflow::Daemon daemon;
+    return daemon.run(argc, argv, virtual_kb);
 }

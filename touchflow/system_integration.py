@@ -43,7 +43,7 @@ def install_desktop_files(project_root: Path) -> Path:
         if not src.exists():
             continue
         text = src.read_text(encoding="utf-8")
-        # Подставляем реальный путь к touchflowd
+        text = text.replace("Exec=touchflowd --virtual-keyboard", f"Exec={bin_path} --virtual-keyboard")
         text = text.replace("Exec=touchflowd", f"Exec={bin_path}")
         text = text.replace("Exec=/usr/bin/touchflowd", f"Exec={bin_path}")
         (apps / name).write_text(text, encoding="utf-8")
@@ -61,8 +61,7 @@ def write_systemd_service(project_root: Path) -> None:
     svc_dir = _home() / ".config" / "systemd" / "user"
     svc_dir.mkdir(parents=True, exist_ok=True)
     bin_path = touchflowd_path()
-    wrapper = project_root / "scripts" / "touchflowd-wrapper.sh"
-    exec_line = str(wrapper) if wrapper.exists() else bin_path
+    exec_line = bin_path
 
     content = f"""[Unit]
 Description=TouchFlow On-Screen Keyboard
@@ -76,8 +75,7 @@ ExecStart={exec_line}
 Restart=on-failure
 RestartSec=3
 Environment=GTK_USE_PORTAL=0
-Environment=GTK_MODULES=gail:atk-bridge
-Environment=QT_ACCESSIBILITY=1
+Environment=AT_SPI_BUS_ADDRESS=unix:path=/run/user/%U/at-spi/bus
 
 [Install]
 WantedBy=graphical-session.target
@@ -101,6 +99,7 @@ def register_kde_virtual_keyboard(virtual_desktop: Path) -> None:
     """Регистрация в KDE: Параметры системы → Виртуальные клавиатуры."""
     if not virtual_desktop.exists():
         return
+    # KDE ожидает имя .desktop (не полный путь) в kwinrc[Wayland] InputMethod
     desktop_id = virtual_desktop.name
     log.info("KDE virtual keyboard desktop: %s", desktop_id)
 
@@ -110,7 +109,7 @@ def register_kde_virtual_keyboard(virtual_desktop: Path) -> None:
             continue
         subprocess.run(
             [writer, "--file", "kwinrc", "--group", "Wayland",
-             "--key", "InputMethod", str(virtual_desktop)],
+             "--key", "InputMethod", desktop_id],
             capture_output=True,
         )
         subprocess.run(
@@ -156,6 +155,16 @@ def full_system_register(project_root: Path) -> str:
 
     register_kde_virtual_keyboard(virtual)
     register_gnome_screen_keyboard(True)
+
+    # Обновить кэши desktop / KDE
+    subprocess.run(
+        ["update-desktop-database", str(_home() / ".local" / "share" / "applications")],
+        capture_output=True,
+    )
+    for cmd in (["kbuildsycoca6", "--noincremental"], ["kbuildsycoca5", "--noincremental"]):
+        if shutil.which(cmd[0]):
+            subprocess.run(cmd, capture_output=True)
+            break
 
     hints = [
         "TouchFlow зарегистрирован.",
