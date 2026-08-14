@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.3] - 2026-08-14
+
+### Fixed
+- **Ничего не происходит**: systemd использовал `/usr/bin/touchflowd` (не существовал) — исправлено на `~/.local/bin`
+- **Type=simple** вместо `Type=dbus` (демон не стартовал)
+- AppImage показывает ошибку если нет GTK4
+- **KDE «Виртуальные клавиатуры»**: desktop с `X-KDE-Wayland-VirtualKeyboard=true`
+
+### Added
+- `experimental/touchflow-cpp/` — прототип на C++/GTK4
+- `touchflow/system_integration.py` — регистрация KDE/GNOME
+
 ## [1.0.2] - 2026-08-14
 
 ### Fixed

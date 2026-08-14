@@ -214,10 +214,21 @@ make test      # 10 тестов
 make release   # dist/
 ```
 
+## Эксперимент: C++ версия
+
+Прототип на C++/GTK4: [`experimental/touchflow-cpp/`](experimental/touchflow-cpp/README.md)
+
+```bash
+cd experimental/touchflow-cpp && cmake -B build && cmake --build build
+```
+
 ## Устранение неполадок
 
 | Проблема | Решение |
 |----------|---------|
+| AppImage — ничего не происходит | Нужен GTK4: `sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1` |
+| Не в списке виртуальных клавиатур (KDE) | Переустановите: `./scripts/install.sh`, затем **Параметры системы → Устройства ввода → Виртуальная клавиатура → TouchFlow** |
+| Демон не работает | `systemctl --user status touchflow-daemon` и `journalctl --user -u touchflow-daemon -e` |
 | Не появляется при фокусе | `at-spi2-core`, `export GTK_MODULES=gail:atk-bridge` |
 | Клавиши не вводятся | `sudo usermod -aG input $USER`, перелогин |
 | Не скрывается при USB KB | Настройки → Поведение → «Скрывать при внешней клавиатуре» |

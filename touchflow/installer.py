@@ -67,6 +67,8 @@ def install_system_deps(pkg_mgr: str) -> tuple[bool, str]:
 
 
 def install_touchflow(log_cb) -> tuple[bool, str]:
+    from touchflow.system_integration import full_system_register
+
     home = Path.home()
     local_bin = home / ".local" / "bin"
     local_share = home / ".local" / "share"
@@ -84,23 +86,25 @@ def install_touchflow(log_cb) -> tuple[bool, str]:
     if r.returncode != 0:
         return False, f"pip install failed:\n{r.stderr}"
 
-    log_cb("Копирование desktop-файлов...")
-    for name in ("com.touchflow.Settings.desktop", "com.touchflow.Keyboard.desktop"):
-        src = PROJECT_ROOT / "data" / name
-        if src.exists():
-            shutil.copy2(src, apps_dir / name)
+    # Копируем wrapper
+    wrapper_src = PROJECT_ROOT / "scripts" / "touchflowd-wrapper.sh"
+    if wrapper_src.exists():
+        wrapper_dst = local_bin / "touchflowd-wrapper"
+        shutil.copy2(wrapper_src, wrapper_dst)
+        wrapper_dst.chmod(0o755)
 
-    icon_src = PROJECT_ROOT / "assets" / "logo.svg"
-    if icon_src.exists():
-        shutil.copy2(icon_src, icons_dir / "com.touchflow.Keyboard.svg")
-
-    log_cb("Настройка systemd...")
-    svc_src = PROJECT_ROOT / "systemd" / "touchflow-daemon.service"
-    if svc_src.exists():
-        shutil.copy2(svc_src, systemd_dir / "touchflow-daemon.service")
-        _run(["systemctl", "--user", "daemon-reload"])
-        _run(["systemctl", "--user", "enable", "touchflow-daemon.service"])
-        _run(["systemctl", "--user", "start", "touchflow-daemon.service"])
+    log_cb("Регистрация в системе (KDE, GNOME, systemd)...")
+    try:
+        hints = full_system_register(PROJECT_ROOT)
+        log_cb(hints)
+    except Exception as e:
+        log_cb(f"Предупреждение регистрации: {e}")
+        # fallback
+        for name in ("com.touchflow.Settings.desktop", "com.touchflow.Keyboard.desktop",
+                      "com.touchflow.Keyboard.Virtual.desktop"):
+            src = PROJECT_ROOT / "data" / name
+            if src.exists():
+                shutil.copy2(src, apps_dir / name)
 
     log_cb("Добавление в группу input...")
     user = os.environ.get("USER", "")
@@ -110,6 +114,7 @@ def install_touchflow(log_cb) -> tuple[bool, str]:
     log_cb("Готово!")
     return True, (
         "TouchFlow установлен!\n\n"
+        "• KDE: Параметры системы → Устройства ввода → Виртуальная клавиатура → TouchFlow\n"
         "• Настройки: touchflow-settings\n"
         "• CLI: touchflow-cli toggle\n"
         "• Перелогиньтесь для группы input"
@@ -249,5 +254,18 @@ class InstallerApp(Adw.Application):
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    app = InstallerApp()
-    sys.exit(app.run(sys.argv))
+    try:
+        app = InstallerApp()
+        sys.exit(app.run(sys.argv))
+    except Exception as e:
+        msg = (
+            f"Не удалось запустить установщик:\n{e}\n\n"
+            "Установите зависимости:\n"
+            "  sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1\n\n"
+            "Или используйте shell-установщик:\n"
+            "  curl -fsSL .../touchflow-install.sh | bash"
+        )
+        print(msg, file=sys.stderr)
+        if shutil.which("zenity"):
+            subprocess.run(["zenity", "--error", "--text", msg, "--width", "400"])
+        sys.exit(1)
