@@ -43,6 +43,7 @@ jobs:
             ## TouchFlow Keyboard 1.0.0
 
             Надёжная установка: абсолютные пути, touchflow-doctor, AppImage удаления.
+            Исправлены crash touchflow-settings (FloatSpinRow) и PATH (~/.local/bin).
 
             ### Python (production)
             - TouchFlow-Keyboard-1.0.0-*.AppImage — установщик
