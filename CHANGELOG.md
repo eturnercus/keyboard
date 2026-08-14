@@ -4,7 +4,9 @@
 
 Единый стабильный релиз TouchFlow Keyboard.
 
-### Исправлено
+### Fixed (2026-08-14 patch)
+- **D-Bus Show**: `dbus = BUS_XML` на сервере + клиент через dbus-python (исправлен CompositeObject)
+- **python3-dbus** в зависимостях установки
 - **D-Bus / демон**: activation-файл `com.touchflow.Keyboard.service`, автозапуск демона из настроек и CLI
 - **systemctl --user**: корректные переменные среды, `import-environment`; предупреждение не использовать `sudo`
 - **touchflow-settings crash**: `FloatSpinRow` + subtitle

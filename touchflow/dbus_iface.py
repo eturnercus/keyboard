@@ -11,8 +11,6 @@ DBUS_PATH = "/com/touchflow/Keyboard"
 DBUS_INTERFACE = "com.touchflow.Keyboard1"
 
 BUS_XML = """
-<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
- "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
   <interface name="com.touchflow.Keyboard1">
     <method name="Show"/>
@@ -33,6 +31,10 @@ BUS_XML = """
 
 
 class TouchFlowDBusService:
+    """Сервер D-Bus; атрибут dbus обязателен для pydbus introspection."""
+
+    dbus = BUS_XML
+
     def __init__(self, daemon):
         self._daemon = daemon
         self._bus = None
@@ -42,14 +44,13 @@ class TouchFlowDBusService:
             from pydbus import SessionBus
 
             self._bus = SessionBus()
-            self._bus.publish(DBUS_BUS, self)
-            log.info("D-Bus service published: %s", DBUS_BUS)
+            self._bus.publish(DBUS_BUS, self, DBUS_PATH)
+            log.info("D-Bus service published: %s at %s", DBUS_BUS, DBUS_PATH)
             return True
         except Exception as e:
             log.warning("D-Bus unavailable: %s", e)
             return False
 
-    # D-Bus methods
     def Show(self):
         self._daemon.show_keyboard(manual=True)
 

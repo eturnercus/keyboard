@@ -9,10 +9,9 @@ import subprocess
 import time
 from pathlib import Path
 
-log = logging.getLogger(__name__)
+from touchflow.dbus_iface import DBUS_BUS, DBUS_INTERFACE, DBUS_PATH
 
-DBUS_BUS = "com.touchflow.Keyboard"
-DBUS_PATH = "/com/touchflow/Keyboard"
+log = logging.getLogger(__name__)
 
 _DAEMON_START_HINT = (
     "Демон не запущен. Выполните БЕЗ sudo:\n"
@@ -22,32 +21,78 @@ _DAEMON_START_HINT = (
 )
 
 
-def _session_bus():
-    from pydbus import SessionBus
-
-    return SessionBus()
-
-
-def dbus_proxy():
-    return _session_bus().get(DBUS_BUS, DBUS_PATH)
-
-
-def dbus_available() -> bool:
-    try:
-        dbus_proxy()
-        return True
-    except Exception:
-        return False
-
-
 def _touchflowd_path() -> str:
     from touchflow.paths import resolve_cmd
 
     return resolve_cmd("touchflowd")
 
 
+def _dbus_python_iface():
+    import dbus
+
+    bus = dbus.SessionBus()
+    obj = bus.get_object(DBUS_BUS, DBUS_PATH)
+    return dbus.Interface(obj, DBUS_INTERFACE)
+
+
+def _dbus_python_props():
+    import dbus
+
+    bus = dbus.SessionBus()
+    obj = bus.get_object(DBUS_BUS, DBUS_PATH)
+    return dbus.Interface(obj, dbus.PROPERTIES_IFACE)
+
+
+def _pydbus_proxy():
+    from pydbus import SessionBus
+
+    return SessionBus().get(DBUS_BUS, DBUS_PATH, DBUS_INTERFACE)
+
+
+def _call_method(method: str, *args) -> None:
+    """Вызов метода D-Bus через dbus-python (приоритет) или pydbus."""
+    try:
+        import dbus  # noqa: F401
+
+        iface = _dbus_python_iface()
+        getattr(iface, method)(*args)
+        return
+    except ImportError:
+        pass
+    except Exception as e:
+        if "ServiceUnknown" in str(e) or "was not provided" in str(e):
+            raise
+        log.debug("dbus-python call failed, trying pydbus: %s", e)
+
+    proxy = _pydbus_proxy()
+    getattr(proxy, method)(*args)
+
+
+def _get_property(name: str):
+    try:
+        import dbus
+
+        props = _dbus_python_props()
+        return props.Get(DBUS_INTERFACE, name)
+    except ImportError:
+        pass
+    except Exception as e:
+        log.debug("dbus-python property failed, trying pydbus: %s", e)
+
+    proxy = _pydbus_proxy()
+    return getattr(proxy, name)
+
+
+def dbus_available() -> bool:
+    try:
+        _get_property("Version")
+        return True
+    except Exception:
+        return False
+
+
 def ensure_daemon_running(wait_seconds: float = 12.0) -> None:
-    """Запустить демон если D-Bus недоступен (systemd → прямой spawn → D-Bus activation)."""
+    """Запустить демон если D-Bus недоступен (systemd → прямой spawn)."""
     if dbus_available():
         return
 
@@ -78,14 +123,6 @@ def ensure_daemon_running(wait_seconds: float = 12.0) -> None:
         if _wait_for_dbus(wait_seconds / 2):
             return
 
-    # D-Bus activation (.service file) — запрос имени запускает touchflowd
-    try:
-        _session_bus().get(DBUS_BUS, DBUS_PATH)
-        if dbus_available():
-            return
-    except Exception as e:
-        log.debug("D-Bus activation failed: %s", e)
-
     raise RuntimeError(_DAEMON_START_HINT)
 
 
@@ -100,7 +137,7 @@ def _wait_for_dbus(seconds: float) -> bool:
 
 def dbus_call(method: str, *args) -> None:
     ensure_daemon_running()
-    getattr(dbus_proxy(), method)(*args)
+    _call_method(method, *args)
 
 
 def dbus_show() -> None:
@@ -116,22 +153,19 @@ def dbus_toggle() -> None:
 
 
 def dbus_status() -> dict[str, object]:
-    """Состояние демона через D-Bus; исключение если недоступен."""
     ensure_daemon_running()
-    proxy = dbus_proxy()
     return {
-        "version": str(proxy.Version),
-        "visible": bool(proxy.Visible),
-        "external_keyboard": bool(proxy.ExternalKeyboardConnected),
+        "version": str(_get_property("Version")),
+        "visible": bool(_get_property("Visible")),
+        "external_keyboard": bool(_get_property("ExternalKeyboardConnected")),
     }
 
 
 def try_show_existing_daemon() -> bool:
-    """Если демон уже запущен — показать клавиатуру и вернуть True."""
     try:
         if not dbus_available():
             return False
-        getattr(dbus_proxy(), "Show")()
+        _call_method("Show")
         return True
     except Exception as e:
         log.debug("No running daemon to show: %s", e)

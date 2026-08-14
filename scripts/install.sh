@@ -14,12 +14,12 @@ if command -v apt-get &>/dev/null; then
     echo "==> Installing system dependencies..."
     sudo apt-get update -qq
     sudo apt-get install -y \
-        python3 python3-pip python3-gi python3-gi-cairo gir1.2-gtk-4.0 \
+        python3 python3-pip python3-gi python3-gi-cairo python3-dbus gir1.2-gtk-4.0 \
         gir1.2-adw-1 gir1.2-atspi-2.0 python3-evdev at-spi2-core dbus-x11 \
         dbus-user-session zenity \
         gir1.2-layer-shell-0 libgtk-4-layer-shell1 2>/dev/null || \
     sudo apt-get install -y \
-        python3 python3-pip python3-gi python3-gi-cairo gir1.2-gtk-4.0 \
+        python3 python3-pip python3-gi python3-gi-cairo python3-dbus gir1.2-gtk-4.0 \
         gir1.2-adw-1 gir1.2-atspi-2.0 python3-evdev at-spi2-core dbus-x11 \
         dbus-user-session zenity 2>/dev/null || true
 elif command -v dnf &>/dev/null; then

@@ -353,10 +353,9 @@ class SettingsApp(Adw.Application):
 
     def _reset_learning(self, *_):
         try:
-            from pydbus import SessionBus
-            bus = SessionBus()
-            proxy = bus.get("com.touchflow.Keyboard", "/com/touchflow/Keyboard")
-            proxy.ResetLearning()
+            from touchflow.dbus_client import dbus_call
+
+            dbus_call("ResetLearning")
         except Exception:
             from touchflow.learning import LearningEngine
             LearningEngine(config=self.config.learning).reset()
@@ -430,10 +429,9 @@ class SettingsApp(Adw.Application):
 
     def _toggle_overlay_edit(self, *_):
         try:
-            from pydbus import SessionBus
-            bus = SessionBus()
-            proxy = bus.get("com.touchflow.Keyboard", "/com/touchflow/Keyboard")
-            proxy.SetOverlayEditMode(True)
+            from touchflow.dbus_client import dbus_call
+
+            dbus_call("SetOverlayEditMode", True)
         except Exception as e:
             log.warning("Cannot enable edit mode: %s", e)
 
