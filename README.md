@@ -6,39 +6,94 @@
 
 <p align="center">
   <strong>Экранная клавиатура для сенсорного Linux</strong><br>
-  Мультитач · RU/EN · Обучение · Оверлей · До входа в систему
+  Мультитач · RU/EN/UK/DE/FR · Обучение · Оверлей · KDE Wayland
+</p>
+
+<p align="center">
+  <a href="https://github.com/eturnercus/keyboard/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/version-1.0.0-blue" alt="Version 1.0.0"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License GPL-3.0"></a>
+  <a href="https://github.com/eturnercus/keyboard"><img src="https://img.shields.io/badge/platform-Linux-lightgrey" alt="Platform Linux"></a>
+  <a href="README.en.md"><img src="https://img.shields.io/badge/lang-English-blue" alt="English README"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/eturnercus/keyboard">Репозиторий</a> ·
+  <a href="https://github.com/eturnercus/keyboard/releases/tag/v1.0.0">Релизы</a> ·
+  <a href="README.en.md">English README</a>
 </p>
 
 ---
 
-## Что это
+## Возможности
 
 **TouchFlow** — экранная клавиатура для планшетов, киосков, панелей и 2-в-1 на Linux (Debian, Ubuntu, Fedora, Arch и др.).
 
-При первом запуске показывается короткое обучение (один раз). Дальше — только если нажать «Показать обучение снова» в настройках.
+### Клавиатура и ввод
+
+- **Мультитач** — до 10 одновременных касаний
+- **Авто-показ** при фокусе на поле ввода через AT-SPI
+- **Движок обучения** — запоминает, где вы скрываете клавиатуру; порог показа и правила per-app (`auto`, `always_show`, `always_hide`)
+- **Оверлей / gamepad** — полупрозрачный джойстик и кнопки (как на телефонах)
+- **Языки:** русский, English, українська, Deutsch, Français (RU/EN/UK/DE/FR)
+- **Быстрые действия:** копировать, вставить, вырезать, выделить всё, отмена, повтор, поиск (Ctrl+C/V/X/A/Z/Y/F)
+- **F-клавиши** (F1–F12), **numpad**, **ряд стрелок**
+- **Скрытие при внешней клавиатуре** (USB/BT)
+- **Свайп снизу вверх** для показа клавиатуры
+
+### Интеграция с системой
+
+- **KDE Wayland** — виртуальная клавиатура (`X-KDE-Wayland-VirtualKeyboard`)
+- **GNOME a11y** — экранная клавиатура через `gsettings`
+- **Физические привязки** кнопок через evdev
+- **D-Bus** API (`com.touchflow.Keyboard`) и **CLI** (`touchflow-cli`)
+
+### Установка и сопровождение
+
+- **Первый запуск** — пошаговое onboarding (6 шагов, один раз)
+- **Правила обучения per-app** в настройках и `config.toml`
+- **Python 1.0.0** — production-версия с полным GUI настроек
+- **C++ 1.0.0** — экспериментальная нативная сборка (GTK4, без Python в рантайме)
+- **`touchflow-doctor`** — диагностика установки (PATH, бинарники, systemd, uinput, KDE desktop)
+- **AppImage-установщики:** Install Python, Install C++, Uninstall
+
+---
+
+## Быстрый старт
+
+```bash
+curl -fsSL https://github.com/eturnercus/keyboard/releases/download/v1.0.0/touchflow-install-1.0.0.sh -o install-touchflow.sh
+chmod +x install-touchflow.sh
+./install-touchflow.sh
+```
+
+Перелогиньтесь для группы `input`, затем откройте **Настройки** → `touchflow-settings` или выберите TouchFlow в KDE.
+
+---
 
 ## Установка
 
-> **Скачать готовые сборки:** https://github.com/eturnercus/keyboard/releases
+> **Скачать готовые сборки:** https://github.com/eturnercus/keyboard/releases/tag/v1.0.0
 
-### AppImage (рекомендуется)
+### Python AppImage (рекомендуется)
 
 ```bash
-# Скачайте из Releases, затем:
+# x86_64
+curl -fsSL -O https://github.com/eturnercus/keyboard/releases/download/v1.0.0/TouchFlow-Keyboard-1.0.0-x86_64.AppImage
 chmod +x TouchFlow-Keyboard-1.0.0-x86_64.AppImage
 ./TouchFlow-Keyboard-1.0.0-x86_64.AppImage
 ```
 
-> **ARM (aarch64)?** Скачайте `TouchFlow-Keyboard-*-aarch64.AppImage` или используйте shell-установщик:
-> ```bash
-> curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-1.0.0.sh | bash
-> ```
+Для **aarch64** замените имя файла на `TouchFlow-Keyboard-1.0.0-aarch64.AppImage`. Откроется графический установщик — нажмите «Установить».
 
-> **Ошибка «формат выполняемого файла»?** Вы скачали x86_64 на ARM (или наоборот). Проверьте: `uname -m`
+### Python shell-установщик (curl)
 
-Откроется графический установщик — нажмите «Установить».
+```bash
+curl -fsSL https://github.com/eturnercus/keyboard/releases/download/v1.0.0/touchflow-install-1.0.0.sh | bash
+```
 
-### Из исходников
+Работает на любой архитектуре; ставит зависимости, pip-пакет, systemd и desktop-файлы.
+
+### Из git (`./scripts/install.sh`)
 
 ```bash
 git clone https://github.com/eturnercus/keyboard.git
@@ -46,315 +101,214 @@ cd keyboard
 ./scripts/install.sh
 ```
 
-Перелогиньтесь для группы `input`.
-
-### C++ (экспериментальная, без Python)
-
-См. раздел **[Установка C++ 1.0.0](#установка-c-10-экспериментальная)** ниже или `./scripts/install-cpp.sh`.
-
-### AppImage (установщик в один клик)
+### C++ AppImage (экспериментальная)
 
 ```bash
-make appimage
-# → dist/TouchFlow-Keyboard-1.0.0-x86_64.AppImage
-
-chmod +x dist/TouchFlow-Keyboard-*.AppImage
-./dist/TouchFlow-Keyboard-*.AppImage
-```
-
-AppImage откроет графический установщик: поставит зависимости, touchflowd, systemd и desktop-файлы.
-
-### Быстрые кнопки
-
-На клавиатуре есть ряд быстрых действий:
-
-| Кнопка | Действие |
-|--------|----------|
-| Копир. | Ctrl+C |
-| Встав. | Ctrl+V |
-| Вырез. | Ctrl+X |
-| Всё | Ctrl+A (выделить всё) |
-| Отмена | Ctrl+Z |
-| Повт. | Ctrl+Y |
-| Поиск | Ctrl+F |
-
-Включить/выключить: **Настройки → Раскладка → Быстрые кнопки**
-
-### Магазины Linux
-
-| Платформа | Команда |
-|-----------|---------|
-| **Flathub** | `flatpak install flathub com.touchflow.Keyboard` *(после публикации)* |
-| **Snap Store** | `snap install touchflow-keyboard` *(после публикации)* |
-| **.deb (Debian/Ubuntu)** | `sudo apt install ./touchflow-keyboard_1.0.0_all.deb` |
-
-Локальная сборка пакетов:
-
-```bash
-./scripts/build-flatpak.sh   # Flatpak
-./scripts/build-snap.sh      # Snap
-./scripts/build-deb.sh       # .deb
-make release                 # wheel + tar.gz
-```
-
-### Зависимости (если ставите вручную)
-
-```bash
-# Debian/Ubuntu
-sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-atspi-2.0 python3-evdev at-spi2-core
-
-# Fedora
-sudo dnf install python3-gobject gtk4 libadwaita at-spi2-core python3-evdev
-
-# Arch
-sudo pacman -S python-gobject gtk4 libadwaita at-spi2-core python-evdev
-```
-
-## Запуск
-
-```bash
-touchflowd              # демон (автостарт через systemd)
-touchflow-settings      # настройки
-touchflow-cli toggle    # показать/скрыть
-```
-
-## Возможности (v1.0.0)
-
-### Языки
-- **Русский** и **English** по умолчанию
-- Дополнительно: Українська, Deutsch, Français
-- Включение/отключение языков в **Настройки → Языки**
-- Кнопка 🌐 или RU/EN на клавиатуре для переключения
-
-### Обучение
-- Запоминает, где вы скрываете клавиатуру
-- **Настройки → Обучение**:
-  - Порог показа (0.0–1.0)
-  - Правила per-app: `always_show`, `always_hide`, `auto`
-  - История по приложениям
-  - Сброс обучения
-
-### Поведение
-- Авто-показ при фокусе на поле ввода
-- Скрытие при подключении USB/BT клавиатуры
-- Свайп снизу вверх
-- Мультитач (до 10 клавиш)
-- F1–F12, стрелки, numpad
-
-### Оверлей
-- Полупрозрачный джойстик и кнопки (как на телефонах)
-- Редактирование позиций в настройках
-
-### Первый запуск
-- Полупрозрачное окно с 6 шагами обучения
-- Показывается **только один раз**
-- Повтор: **Настройки → О программе → Показать обучение снова**
-
-### Сброс
-- **Сбросить обучение** — только данные обучения
-- **Сбросить настройки** — config.toml (бэкап в .bak)
-- **Полный сброс** — настройки + обучение + флаг первого запуска
-
-### Экран входа
-```bash
-sudo ./scripts/install-greeter.sh
-sudo systemctl restart gdm   # или lightdm / sddm
-```
-
-## Настройки
-
-`touchflow-settings` — 10 разделов:
-
-| Раздел | Содержание |
-|--------|------------|
-| Поведение | Авто-показ, свайп, мультитач, внешняя клавиатура |
-| **Языки** | Вкл/выкл RU, EN, UK, DE, FR; язык по умолчанию |
-| **Обучение** | Порог, правила per-app, история, сброс |
-| Раскладка | Высота, F-ряд, numpad |
-| Шрифты | Семейство, размер |
-| Цвета | 6 цветов |
-| Оверлей | Джойстик, прозрачность |
-| Кнопки | Физические привязки evdev |
-| Экран входа | Greeter |
-| О программе | Сброс, обучение снова |
-
-Конфиг: `~/.config/touchflow/config.toml` — пример в [docs/config.example.toml](docs/config.example.toml).
-
-### Пример: правило обучения
-
-```toml
-[[learning.rules]]
-app_id = "firefox"
-window_class = ""
-mode = "always_hide"   # auto | always_show | always_hide
-```
-
-### Пример: добавить язык
-
-```toml
-[[languages.entries]]
-code = "uk"
-name = "Українська"
-enabled = true
-is_default = false
-```
-
-## CLI и D-Bus
-
-```bash
-touchflow-cli show
-touchflow-cli hide
-touchflow-cli toggle
-touchflow-cli overlay
-touchflow-cli reset-learning
-touchflow-cli reload
-```
-
-## Сборка и тесты
-
-```bash
-pip install -e ".[dev]"
-make test      # 10 тестов
-make release   # dist/
-```
-
-## Установка C++ 1.0.0 (экспериментальная)
-
-Нативный демон **`touchflowd-cpp`** — без Python в рантайме. Статус: **experimental**; основная версия — Python (`touchflowd`).
-
-Подробности: [`experimental/touchflow-cpp/README.md`](experimental/touchflow-cpp/README.md)
-
-| | Python 1.0.0 | C++ 1.0.0 |
-|---|--------------|-----------|
-| Бинарник | `touchflowd` | `touchflowd-cpp` |
-| Установка | `./scripts/install.sh` | `./scripts/install-cpp.sh` |
-| Настройки | `touchflow-settings` | `~/.config/touchflow/config-cpp.toml` |
-| Языки | RU/EN/UK/DE/FR | RU/EN |
-
-> Не запускайте оба демона одновременно. В KDE выберите **одну** виртуальную клавиатуру: TouchFlow (Python) или TouchFlow C++.
-
-### AppImage (рекомендуется)
-
-```bash
-# Скачайте из Releases:
-# TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
+curl -fsSL -O https://github.com/eturnercus/keyboard/releases/download/v1.0.0/TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
 chmod +x TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
 ./TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
 ```
 
-Откроется графический установщик (zenity): поставит `touchflowd-cpp`, desktop-файлы для KDE и runtime GTK4.
-
-**Shell-установщик** (без AppImage, любая архитектура):
+### C++ shell-установщик (`install-cpp`)
 
 ```bash
-curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-cpp-1.0.0.sh | bash
+curl -fsSL https://github.com/eturnercus/keyboard/releases/download/v1.0.0/touchflow-install-cpp-1.0.0.sh | bash
 ```
 
-### Из Releases (только бинарник)
+Или из исходников: `./scripts/install-cpp.sh`
+
+### Требования
+
+| Компонент | Назначение |
+|-----------|------------|
+| Группа **`input`** | Доступ к `/dev/uinput` для ввода клавиш |
+| **Wayland** (KDE) | Виртуальная клавиатура в списке KDE — только Wayland, не X11 |
+| GTK4, AT-SPI | Интерфейс и авто-показ при фокусе |
+| `python3-evdev` | Обнаружение внешней клавиатуры (Python) |
+
+**Debian/Ubuntu (Python):**
 
 ```bash
-# Проверьте архитектуру
-uname -m    # x86_64 или aarch64
-
-# Скачайте touchflowd-cpp-<arch> из https://github.com/eturnercus/keyboard/releases/tag/v1.0.0
-chmod +x touchflowd-cpp-x86_64
-mkdir -p ~/.local/bin
-mv touchflowd-cpp-x86_64 ~/.local/bin/touchflowd-cpp
-
-# Desktop-файлы для KDE (виртуальная клавиатура)
-mkdir -p ~/.local/share/applications
-cp experimental/touchflow-cpp/data/*.desktop ~/.local/share/applications/
-sed -i "s|Exec=touchflowd-cpp|Exec=$HOME/.local/bin/touchflowd-cpp|g" \
-  ~/.local/share/applications/com.touchflow.Keyboard.*.desktop
-update-desktop-database ~/.local/share/applications
+sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 gir1.2-atspi-2.0 python3-evdev at-spi2-core
 ```
 
-### Из исходников (рекомендуется)
+**Debian/Ubuntu (C++):**
 
 ```bash
-git clone https://github.com/eturnercus/keyboard.git
-cd keyboard
-./scripts/install-cpp.sh
-```
-
-Скрипт ставит зависимости (Debian/Ubuntu), собирает проект, копирует `touchflowd-cpp` в `~/.local/bin/`, регистрирует desktop-файлы и добавляет пользователя в группу `input`.
-
-**Перелогиньтесь** после установки (нужна группа `input` для `/dev/uinput`).
-
-### Ручная сборка
-
-```bash
-# Debian/Ubuntu
 sudo apt install build-essential cmake pkg-config g++ \
   libgtk-4-dev libadwaita-1-dev libevdev-dev libatspi2.0-dev at-spi2-core
-
-# Fedora
-sudo dnf install gcc-c++ cmake pkg-config gtk4-devel libadwaita-devel \
-  libevdev-devel at-spi2-core-devel
-
-cd experimental/touchflow-cpp
-CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j$(nproc)
-
-./build/touchflowd-cpp --version
 ```
 
-### Запуск
+---
+
+## После установки
 
 ```bash
-touchflowd-cpp                    # обычный режим (авто-показ при фокусе)
-touchflowd-cpp --virtual-keyboard # режим KDE/GNOME виртуальной клавиатуры
+touchflow-doctor                              # диагностика
+touchflow-settings                            # настройки (полный путь: ~/.local/bin/touchflow-settings)
+systemctl --user status touchflow-daemon      # статус демона Python
+systemctl --user restart touchflow-daemon     # перезапуск
+journalctl --user -u touchflow-daemon -e      # логи
 ```
 
-**KDE Wayland:** Параметры системы → Устройства ввода → Виртуальная клавиатура → **TouchFlow** (или TouchFlow C++).
+Для C++: `systemctl --user status touchflow-daemon-cpp`
 
-Конфиг (опционально): `~/.config/touchflow/config-cpp.toml`
+Если `touchflow-settings` не найден — проверьте `echo $PATH` (нужен `~/.local/bin`) или запустите `touchflow-doctor`.
 
-```toml
-[behavior]
-auto_show = true
-hide_on_external_keyboard = true
+**Перелогиньтесь** после установки (`sudo usermod -aG input $USER`).
 
-[layout]
-height_px = 280
-show_quick_actions = true
-```
+---
 
-### C++ и Python вместе
+## Настройки
 
-- Python: `touchflowd`, `touchflow-settings`, systemd `touchflow-daemon.service`
-- C++: только `touchflowd-cpp`, без GUI-настроек
-- Для продакшена на dan24 используйте **Python** (`touchflow-install-1.0.0.sh`)
-- C++ — для тестов нативной сборки и сравнения производительности
+| Команда | Версия | Описание |
+|---------|--------|----------|
+| `touchflow-settings` | Python (production) | Полный GUI: 10 разделов (Libadwaita) |
+| `touchflow-settings-cpp` | C++ (experimental) | Упрощённые настройки C++ |
 
+**Разделы `touchflow-settings`:**
+
+| Раздел | Содержание |
+|--------|------------|
+| Поведение | Авто-показ, свайп, мультитач, внешняя клавиатура |
+| Языки | RU, EN, UK, DE, FR; язык по умолчанию |
+| Обучение | Порог, правила per-app, история, сброс |
+| Раскладка | Высота, F-ряд, numpad, быстрые кнопки |
+| Шрифты | Семейство, размер |
+| Цвета | 6 цветов темы |
+| Оверлей | Джойстик, прозрачность, позиции |
+| Кнопки | Физические привязки evdev |
+| Экран входа | Greeter (до логина) |
+| О программе | Сброс, повтор onboarding |
+
+Конфиг Python: `~/.config/touchflow/config.toml` — пример в [docs/config.example.toml](docs/config.example.toml).
+
+Конфиг C++: `~/.config/touchflow/config-cpp.toml`
+
+---
+
+## KDE Virtual Keyboard (только Wayland)
+
+1. Убедитесь, что сессия **Wayland** (не X11): `echo $XDG_SESSION_TYPE`
+2. Установите TouchFlow (`./scripts/install.sh` или AppImage Python)
+3. **Перелогиньтесь** (группа `input`)
+4. Откройте **Параметры системы** → **Устройства ввода** → **Виртуальная клавиатура**
+5. Выберите **TouchFlow** (или **TouchFlow C++** для C++-версии)
+6. Если TouchFlow нет в списке:
+   ```bash
+   touchflow-doctor
+   kbuildsycoca6 --noincremental   # или kbuildsycoca5
+   ```
+7. Перезапустите сессию KDE
+
+> Не запускайте Python и C++ демоны одновременно. В KDE выберите **одну** виртуальную клавиатуру.
+
+---
 
 ## Удаление
 
-Универсальный скрипт для **Python и C++**:
+### Скрипт `uninstall.sh`
 
 ```bash
-./scripts/uninstall.sh          # с подтверждением
-./scripts/uninstall.sh -y       # без вопросов
-./scripts/uninstall.sh -y --purge-config   # + удалить ~/.config/touchflow
+./scripts/uninstall.sh                        # с подтверждением
+./scripts/uninstall.sh -y                       # без вопросов
+./scripts/uninstall.sh -y --purge-config        # + ~/.config/touchflow
 ```
 
-Или: `make uninstall`
+### AppImage удаления
+
+```bash
+curl -fsSL -O https://github.com/eturnercus/keyboard/releases/download/v1.0.0/TouchFlow-Uninstall-1.0.0-x86_64.AppImage
+chmod +x TouchFlow-Uninstall-1.0.0-x86_64.AppImage
+./TouchFlow-Uninstall-1.0.0-x86_64.AppImage
+```
+
+Удаляет Python и C++ компоненты (демоны, systemd, desktop, pip).
+
+### `make uninstall`
+
+```bash
+make uninstall   # вызывает scripts/uninstall.sh -y
+```
+
+---
 
 ## Устранение неполадок
 
 | Проблема | Решение |
 |----------|---------|
-| AppImage — ничего не происходит | Нужен GTK4: `sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1` |
-| `TypeError: pressed` в journalctl | Обновите до **1.0.0** — исправлен сигнал GTK4 (`clicked`) |
-| Не в списке виртуальных клавиатур (KDE) | Wayland + `./scripts/install.sh`, затем **Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow**. Перезапустите сессию или `kbuildsycoca6 --noincremental` |
-| `uinput init failed` | `sudo usermod -aG input $USER` и перелогин |
-| Демон не работает | `systemctl --user status touchflow-daemon` и `journalctl --user -u touchflow-daemon -e` |
-| Не появляется при фокусе | `at-spi2-core`, `export GTK_MODULES=gail:atk-bridge` |
-| Клавиши не вводятся | `sudo usermod -aG input $USER`, перелогин |
-| Не скрывается при USB KB | Настройки → Поведение → «Скрывать при внешней клавиатуре» |
-| Обучение мешает | Настройки → Обучение → правило `always_show` или сброс |
-| Не работает до логина | `sudo ./scripts/install-greeter.sh` |
+| **`touchflow-settings` не найден** | `echo $PATH` — добавьте `~/.local/bin`; перелогиньтесь; запустите `touchflow-doctor` |
+| **`touchflow-doctor` показывает ошибки** | Переустановите: `./scripts/install.sh`; проверьте `~/.local/bin/touchflow-settings` |
+| **`TypeError: pressed` в journalctl** | Обновите до **1.0.0** — исправлен сигнал GTK4 (`clicked` вместо `pressed`) |
+| **`uinput init failed` / клавиши не вводятся** | `sudo usermod -aG input $USER` и **перелогин** |
+| **TouchFlow не в списке виртуальных клавиатур (KDE)** | Только **Wayland**; `./scripts/install.sh`; **Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow**; `kbuildsycoca6 --noincremental` |
+| **AppImage — ничего не происходит** | `sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 zenity` |
+| **Демон не работает** | `systemctl --user status touchflow-daemon` и `journalctl --user -u touchflow-daemon -e` |
+| **Не появляется при фокусе** | `at-spi2-core`; `export GTK_MODULES=gail:atk-bridge` |
+| **Не скрывается при USB-клавиатуре** | Настройки → Поведение → «Скрывать при внешней клавиатуре» |
+| **Обучение мешает** | Настройки → Обучение → правило `always_show` или сброс |
+
+---
+
+## C++ 1.0.0 (экспериментальная)
+
+Нативный демон **`touchflowd-cpp`** — C++20 + GTK4 + libadwaita. Статус: **experimental**; для продакшена используйте Python.
+
+| | Python 1.0.0 | C++ 1.0.0 |
+|---|--------------|-----------|
+| Статус | **Production** | **Experimental** |
+| Демон | `touchflowd` | `touchflowd-cpp` |
+| Настройки | `touchflow-settings` (GUI) | `touchflow-settings-cpp` |
+| systemd | `touchflow-daemon.service` | `touchflow-daemon-cpp.service` |
+| Языки | RU/EN/UK/DE/FR | RU/EN |
+| Обучение | Полное + per-app | Базовое (порог) |
+| Оверлей / gamepad | Да | Нет |
+| Установка | AppImage / `install.sh` / curl | AppImage C++ / `install-cpp.sh` |
+| Конфиг | `config.toml` | `config-cpp.toml` |
+
+Подробности: [`experimental/touchflow-cpp/README.md`](experimental/touchflow-cpp/README.md)
+
+```bash
+touchflowd-cpp                    # обычный режим
+touchflowd-cpp --virtual-keyboard # режим KDE/GNOME виртуальной клавиатуры
+```
+
+---
+
+## CLI и D-Bus
+
+**D-Bus:** `com.touchflow.Keyboard` на `/com/touchflow/Keyboard`
+
+| Команда | Действие |
+|---------|----------|
+| `touchflow-cli show` | Показать клавиатуру |
+| `touchflow-cli hide` | Скрыть клавиатуру |
+| `touchflow-cli toggle` | Показать/скрыть |
+| `touchflow-cli overlay` | Переключить оверлей (gamepad) |
+| `touchflow-cli reload` | Перезагрузить конфиг |
+| `touchflow-cli reset-learning` | Сбросить данные обучения |
+
+Демон должен быть запущен (`systemctl --user status touchflow-daemon`).
+
+---
+
+## Разработка
+
+```bash
+git clone https://github.com/eturnercus/keyboard.git
+cd keyboard
+pip install -e ".[dev]"
+
+make test           # pytest (tests/)
+make lint           # ruff
+make appimage       # dist/TouchFlow-Keyboard-1.0.0-x86_64.AppImage
+make appimage-cpp   # dist/TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
+make appimage-all   # Python + C++ + Uninstall AppImages
+make release        # wheel + tar.gz в dist/
+```
+
+---
 
 ## Лицензия
 
-GPL-3.0-or-later — [LICENSE](LICENSE)
+[GPL-3.0-or-later](LICENSE) — TouchFlow Keyboard © TouchFlow Contributors
