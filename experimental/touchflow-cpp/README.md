@@ -1,47 +1,61 @@
-# TouchFlow C++ (экспериментальная ветка)
+# TouchFlow C++ 1.0.0 (экспериментальная)
 
 Нативная переписка TouchFlow на **C++20 + GTK4 + libadwaita**.
 
-> Статус: **экспериментальный прототип**. Основная версия — Python в корне репозитория.
+> **Статус:** экспериментальная сборка 1.0.0. Основная (production) версия — Python в корне репозитория.
 
-## Зачем
+## Возможности (C++ 1.0.0)
 
-| Python (основная) | C++ (experimental) |
-|-------------------|-------------------|
-| Быстрая разработка | Меньше зависимостей в рантайме |
-| pip + GTK | Один бинарник после сборки |
-| AppImage тянет Python | Проще AppImage / .deb |
+- GTK4 клавиатура: RU/EN раскладки, F-ряд, цифры, стрелки
+- Быстрые действия: копировать, вставить, вырезать, выделить всё, отмена, повтор
+- uinput/evdev ввод клавиш
+- AT-SPI авто-показ при фокусе на текстовом поле
+- Обнаружение внешней клавиатуры
+- Простое обучение (порог показа)
+- KDE virtual keyboard desktop (`--virtual-keyboard`)
 
 ## Сборка
 
 ```bash
 sudo apt install build-essential cmake pkg-config \
-  libgtk-4-dev libadwaita-1-dev libevdev-dev
+  libgtk-4-dev libadwaita-1-dev libevdev-dev libatspi2.0-dev at-spi2-core
 
 cd experimental/touchflow-cpp
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-./build/touchflowd
+./build/touchflowd-cpp --version
+```
+
+## Установка
+
+```bash
+./scripts/install-cpp.sh
 ```
 
 ## Структура
 
 ```
 src/
-  main.cpp           — точка входа, GTK Application
-  keyboard_window.*  — окно клавиатуры
-  key_injector.*     — ввод через evdev/uinput
-  config.*           — JSON/TOML конфиг (заглушка)
+  main.cpp           — точка входа
+  daemon.cpp         — демон, авто-показ, внешняя KB
+  keyboard_view.cpp  — виджет клавиатуры
+  key_injector.cpp   — uinput
+  focus_watcher.cpp  — AT-SPI
+  external_kb.cpp    — /proc/bus/input/devices
+  learning.cpp       — обучение
+  config.cpp         — config-cpp.toml
+  layouts.cpp        — RU/EN раскладки
+data/
+  com.touchflow.Keyboard.Virtual.desktop
 ```
 
-## Roadmap
+Конфиг: `~/.config/touchflow/config-cpp.toml`
 
-- [x] Базовое окно с рядом клавиш
-- [ ] Мультитач
-- [ ] AT-SPI авто-показ
-- [ ] KDE `X-KDE-Wayland-VirtualKeyboard`
-- [ ] Паритет с Python-версией
+## Связь с Python 1.0.0
 
-## Связь с основным проектом
-
-Конфиг совместим по пути: `~/.config/touchflow/config.toml` (планируется).
+| | Python | C++ |
+|---|--------|-----|
+| Версия | 1.0.0 (production) | 1.0.0 (experimental) |
+| Бинарник | touchflowd | touchflowd-cpp |
+| Настройки | touchflow-settings | config-cpp.toml |
+| Языки | RU/EN/UK/DE/FR | RU/EN |

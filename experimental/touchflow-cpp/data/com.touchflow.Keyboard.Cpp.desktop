@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=TouchFlow C++
+Name[ru]=TouchFlow C++
+Comment=TouchFlow experimental C++ daemon
+Exec=touchflowd-cpp
+Icon=com.touchflow.Keyboard
+Terminal=false
+Categories=Utility;Accessibility;

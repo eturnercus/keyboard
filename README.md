@@ -25,13 +25,13 @@
 
 ```bash
 # Скачайте из Releases, затем:
-chmod +x TouchFlow-Keyboard-1.0.2-x86_64.AppImage
-./TouchFlow-Keyboard-1.0.2-x86_64.AppImage
+chmod +x TouchFlow-Keyboard-1.0.0-x86_64.AppImage
+./TouchFlow-Keyboard-1.0.0-x86_64.AppImage
 ```
 
 > **ARM (aarch64)?** Скачайте `TouchFlow-Keyboard-*-aarch64.AppImage` или используйте shell-установщик:
 > ```bash
-> curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-1.0.2.sh | bash
+> curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-1.0.0.sh | bash
 > ```
 
 > **Ошибка «формат выполняемого файла»?** Вы скачали x86_64 на ARM (или наоборот). Проверьте: `uname -m`
@@ -52,7 +52,7 @@ cd keyboard
 
 ```bash
 make appimage
-# → dist/TouchFlow-Keyboard-1.0.1-x86_64.AppImage
+# → dist/TouchFlow-Keyboard-1.0.0-x86_64.AppImage
 
 chmod +x dist/TouchFlow-Keyboard-*.AppImage
 ./dist/TouchFlow-Keyboard-*.AppImage
@@ -214,12 +214,14 @@ make test      # 10 тестов
 make release   # dist/
 ```
 
-## Эксперимент: C++ версия
+## Эксперимент: C++ 1.0.0
 
-Прототип на C++/GTK4: [`experimental/touchflow-cpp/`](experimental/touchflow-cpp/README.md)
+Нативная версия: [`experimental/touchflow-cpp/`](experimental/touchflow-cpp/README.md)
 
 ```bash
-cd experimental/touchflow-cpp && cmake -B build && cmake --build build
+./scripts/install-cpp.sh
+# или
+cd experimental/touchflow-cpp && CXX=g++ cmake -B build && cmake --build build
 ```
 
 ## Устранение неполадок
@@ -227,7 +229,9 @@ cd experimental/touchflow-cpp && cmake -B build && cmake --build build
 | Проблема | Решение |
 |----------|---------|
 | AppImage — ничего не происходит | Нужен GTK4: `sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1` |
-| Не в списке виртуальных клавиатур (KDE) | Переустановите: `./scripts/install.sh`, затем **Параметры системы → Устройства ввода → Виртуальная клавиатура → TouchFlow** |
+| `TypeError: pressed` в journalctl | Обновите до **1.0.0** — исправлен сигнал GTK4 (`clicked`) |
+| Не в списке виртуальных клавиатур (KDE) | Wayland + `./scripts/install.sh`, затем **Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow**. Перезапустите сессию или `kbuildsycoca6 --noincremental` |
+| `uinput init failed` | `sudo usermod -aG input $USER` и перелогин |
 | Демон не работает | `systemctl --user status touchflow-daemon` и `journalctl --user -u touchflow-daemon -e` |
 | Не появляется при фокусе | `at-spi2-core`, `export GTK_MODULES=gail:atk-bridge` |
 | Клавиши не вводятся | `sudo usermod -aG input $USER`, перелогин |

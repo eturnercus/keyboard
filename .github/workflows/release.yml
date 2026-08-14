@@ -18,20 +18,49 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 \
-            python3-evdev squashfs-tools curl
+            python3-evdev squashfs-tools curl \
+            build-essential cmake pkg-config g++ \
+            libgtk-4-dev libadwaita-1-dev libevdev-dev libatspi2.0-dev
           pip install build pydbus tomli-w
 
-      - name: Build packages
+      - name: Build Python packages
         run: |
           bash scripts/build-release.sh
           bash scripts/build-appimage.sh
           file dist/*.AppImage | grep 'ELF.*executable'
 
+      - name: Build C++ (experimental)
+        run: |
+          cd experimental/touchflow-cpp
+          CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j$(nproc)
+          mkdir -p ../../dist
+          cp build/touchflowd-cpp ../../dist/touchflowd-cpp-$(uname -m)
+          chmod +x ../../dist/touchflowd-cpp-*
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          body: |
+            ## TouchFlow Keyboard 1.0.0
+
+            ### Python 1.0.0 (production)
+            - `touchflow-install-1.0.0.sh` — универсальный установщик
+            - `TouchFlow-Keyboard-*-*.AppImage` — графический установщик
+            - `*.whl`, `*.tar.gz` — pip/sdist
+
+            ### C++ 1.0.0 (experimental)
+            - `touchflowd-cpp-*` — нативный бинарник (GTK4)
+            - Сборка из исходников: `./scripts/install-cpp.sh`
+
+            ### Исправления
+            - GTK4: `connect("pressed")` → `clicked` (краш демона)
+            - KDE: виртуальная клавиатура, kwinrc InputMethod
+            - systemd: `~/.local/bin/touchflowd`, Type=simple
           files: |
             dist/*.whl
             dist/*.tar.gz
             dist/*.AppImage
-          generate_release_notes: true
+            dist/touchflow-install-*.sh
+            dist/touchflowd-cpp-*
+          generate_release_notes: false

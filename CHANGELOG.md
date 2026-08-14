@@ -1,38 +1,25 @@
 # Changelog
 
-## [1.0.3] - 2026-08-14
-
-### Fixed
-- **Ничего не происходит**: systemd использовал `/usr/bin/touchflowd` (не существовал) — исправлено на `~/.local/bin`
-- **Type=simple** вместо `Type=dbus` (демон не стартовал)
-- AppImage показывает ошибку если нет GTK4
-- **KDE «Виртуальные клавиатуры»**: desktop с `X-KDE-Wayland-VirtualKeyboard=true`
-
-### Added
-- `experimental/touchflow-cpp/` — прототип на C++/GTK4
-- `touchflow/system_integration.py` — регистрация KDE/GNOME
-
-## [1.0.2] - 2026-08-14
-
-### Fixed
-- **AppImage**: исправлена сборка (раньше файл не был ELF — «ошибка формата выполняемого файла»)
-- Поддержка **aarch64** AppImage
-- Добавлен универсальный **shell-установщик** `touchflow-install-*.sh` (любая архитектура)
-
-## [1.0.1] - 2026-08-14
-
-### Added
-- **AppImage-установщик** — один файл, графическая установка (`make appimage`)
-- **Быстрые кнопки**: Копировать, Вставить, Вырезать, Выделить всё, Отмена, Повтор, Поиск
-
 ## [1.0.0] - 2026-08-14
 
-### Added
-- **Мультиязычность**: RU, EN, UK, DE, FR — включение/отключение в настройках
-- **Управление обучением**: порог, веса, правила per-app (always_show / always_hide / auto)
-- **Первый запуск**: полупрозрачное обучение (только один раз, повтор — из настроек)
-- **Расширенные настройки**: языки, шрифты, физические кнопки, обучение
-- **Сброс**: настройки, обучение, полный заводской сброс
-- **Пакеты**: Flatpak, Snap, .deb, AppStream metainfo
-- Экранная клавиатура с мультитачем, авто-показом, оверлеем
-- systemd сервисы, greeter, D-Bus API, CLI
+Единый релиз **1.0.0** — Python (основная) и C++ (экспериментальная).
+
+### Python 1.0.0 (production)
+
+- Экранная клавиатура GTK4 с мультитачем, авто-показом (AT-SPI), обучением
+- Языки: RU, EN, UK, DE, FR
+- Быстрые кнопки: копировать, вставить, вырезать, выделить всё, отмена, повтор, поиск
+- Оверлей/джойстик, физические привязки, greeter, D-Bus API
+- Настройки (GTK4/Libadwaita), первый запуск, systemd user service
+- AppImage-установщик, shell-установщик, wheel, sdist
+- **Исправлено**: GTK4 `TypeError` на `connect("pressed")` → `clicked` + gesture
+- **Исправлено**: systemd путь `~/.local/bin/touchflowd`, `Type=simple`
+- **Исправлено**: AppImage ELF (x86_64 + aarch64)
+- **Исправлено**: KDE «Виртуальные клавиатуры» — desktop + kwinrc InputMethod
+
+### C++ 1.0.0 (experimental)
+
+- `experimental/touchflow-cpp/` — нативный демон `touchflowd-cpp`
+- GTK4 + libadwaita, uinput/evdev, AT-SPI авто-показ
+- Раскладки RU/EN, быстрые действия, обучение, внешняя клавиатура
+- KDE virtual keyboard desktop, install script

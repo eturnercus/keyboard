@@ -9,7 +9,7 @@
 
 **Альтернатива (любая архитектура):**
 ```bash
-curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-1.0.2.sh | bash
+curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-1.0.0.sh | bash
 ```
 
 ### Другие способы
