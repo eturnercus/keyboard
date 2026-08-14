@@ -52,6 +52,27 @@ export PYTHONPATH="${HERE}/usr/share/touchflow:${PYTHONPATH:-}"
 export PROJECT_ROOT="${HERE}/usr/share/touchflow"
 export APPIMAGE="${APPIMAGE:-${0}}"
 cd "${HERE}/usr/share/touchflow"
+
+show_error() {
+    local msg="$1"
+    echo "TouchFlow Installer: $msg" >&2
+    if command -v zenity &>/dev/null; then
+        zenity --error --title="TouchFlow" --text="$msg" --width=420 2>/dev/null
+    elif command -v kdialog &>/dev/null; then
+        kdialog --error "$msg" 2>/dev/null
+    fi
+}
+
+if ! command -v python3 &>/dev/null; then
+    show_error "Не найден python3.\n\nsudo apt install python3 python3-gi gir1.2-gtk-4.0 gir1.2-adw-1"
+    exit 1
+fi
+
+if ! python3 -c "import gi; gi.require_version('Gtk','4.0')" 2>/dev/null; then
+    show_error "Нужен GTK4:\n  sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 at-spi2-core python3-evdev"
+    exit 1
+fi
+
 exec python3 -m touchflow.installer "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"

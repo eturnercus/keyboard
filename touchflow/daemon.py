@@ -64,7 +64,7 @@ class TouchFlowDaemon:
     def external_keyboard_connected(self) -> bool:
         return self.kb_monitor.connected
 
-    def run(self) -> int:
+    def run(self, argv: list[str] | None = None) -> int:
         app = Gtk.Application(application_id=APP_ID)
 
         def on_activate(application):
@@ -76,7 +76,7 @@ class TouchFlowDaemon:
                 self.show_keyboard()
 
         app.connect("activate", on_activate)
-        return app.run(sys.argv)
+        return app.run(argv if argv is not None else sys.argv)
 
     def _setup_ui(self) -> None:
         cfg = self.config
@@ -272,5 +272,12 @@ class TouchFlowDaemon:
 
 
 def main() -> None:
+    import argparse
+    parser = argparse.ArgumentParser(description="TouchFlow keyboard daemon")
+    parser.add_argument("--virtual-keyboard", action="store_true",
+                        help="Launched from KDE/GNOME virtual keyboard settings")
+    args, remaining = parser.parse_known_args()
+    if args.virtual_keyboard:
+        logging.getLogger("touchflowd").info("Started as system virtual keyboard")
     daemon = TouchFlowDaemon()
-    sys.exit(daemon.run())
+    sys.exit(daemon.run(remaining if remaining else sys.argv))
