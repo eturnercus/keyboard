@@ -40,10 +40,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body: |
-            ## TouchFlow Keyboard 1.0.0
+            ## TouchFlow Keyboard 1.0.1
 
-            Надёжная установка: абсолютные пути, touchflow-doctor, AppImage удаления.
-            Исправлены crash touchflow-settings (FloatSpinRow) и PATH (~/.local/bin).
+            Исправлен показ клавиатуры на KDE Wayland, кнопка «Показать» в настройках, расширенный touchflow-doctor.
 
             ### Python (production)
             - TouchFlow-Keyboard-1.0.0-*.AppImage — установщик
