@@ -1,8 +1,12 @@
 # Changelog
 
-## [1.0.0] - 2026-08-14
+## [1.0.0] - 2026-08-14 (patch 2)
 
-Единый стабильный релиз TouchFlow Keyboard.
+### Fixed
+- **touchflow-settings crash**: `FloatSpinRow` принимает subtitle (TypeError: Must be number, not function)
+- **PATH**: `~/.local/bin` в `environment.d`, KDE `plasma-workspace/env`, export в install.sh
+- **gtk-modules**: авто-удаление из `gtk-4.0/settings.ini` при установке; `touchflow-doctor --fix`
+
 
 ### Python (production)
 - Экранная клавиатура GTK4: мультитач, авто-показ (AT-SPI), обучение, оверлей

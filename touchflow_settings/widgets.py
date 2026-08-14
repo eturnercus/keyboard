@@ -37,12 +37,30 @@ class SpinRow(Gtk.Box):
 
 
 class FloatSpinRow(Gtk.Box):
-    def __init__(self, label: str, value: float, min_v: float, max_v: float, on_change, step: float = 0.05):
+    """Строка с подписью, опциональным описанием и float SpinButton."""
+
+    def __init__(
+        self,
+        label: str,
+        subtitle: str,
+        value: float,
+        min_v: float,
+        max_v: float,
+        on_change,
+        step: float = 0.05,
+    ):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        lbl = Gtk.Label(label=label)
-        lbl.set_hexpand(True)
-        lbl.set_xalign(0)
-        self.append(lbl)
+        text_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        title = Gtk.Label(label=label, xalign=0)
+        title.add_css_class("title-4")
+        text_box.append(title)
+        if subtitle:
+            sub = Gtk.Label(label=subtitle, xalign=0)
+            sub.add_css_class("dim-label")
+            sub.set_wrap(True)
+            text_box.append(sub)
+        text_box.set_hexpand(True)
+        self.append(text_box)
         spin = Gtk.SpinButton.new_with_range(min_v, max_v, step)
         spin.set_value(value)
         spin.set_digits(2)

@@ -5,6 +5,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Сразу добавить ~/.local/bin для этой сессии
+export PATH="${HOME}/.local/bin:${PATH}"
+
 echo "==> TouchFlow Keyboard Installer"
 
 if command -v apt-get &>/dev/null; then
@@ -53,4 +56,8 @@ echo "  Настройки: $SETTINGS"
 echo "  Проверка: touchflow-doctor"
 echo "  KDE: Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow"
 echo "  Демон: systemctl --user status touchflow-daemon"
-echo "  Перелогиньтесь для группы input."
+echo "  Перелогиньтесь для группы input и PATH."
+echo ""
+echo "  Если команды не находятся, выполните:"
+echo "    export PATH=\"\$HOME/.local/bin:\$PATH\""
+echo "    source ~/.profile"

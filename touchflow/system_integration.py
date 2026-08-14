@@ -145,6 +145,12 @@ def full_system_register(project_root: Path) -> str:
     ensure_local_bin()
     ensure_path_in_shell_profile()
     ensure_pip_scripts()
+    try:
+        from touchflow.paths import fix_gtk4_settings_ini
+        if fix_gtk4_settings_ini():
+            log.info("Removed gtk-modules from gtk-4.0/settings.ini")
+    except Exception:
+        pass
 
     virtual = install_desktop_files(project_root)
     write_systemd_service(project_root)

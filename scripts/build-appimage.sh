@@ -151,6 +151,7 @@ trap 'rm -rf "\$TMP"' EXIT
 
 echo "==> TouchFlow Keyboard Installer v${VERSION}"
 echo "    Архитектура: \$(uname -m)"
+export PATH="\${HOME}/.local/bin:\${PATH}"
 
 if ! command -v python3 &>/dev/null; then
     echo "Ошибка: нужен python3. Установите: sudo apt install python3"

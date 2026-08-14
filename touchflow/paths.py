@@ -46,25 +46,55 @@ def resolve_cmd(name: str) -> str:
 
 
 def ensure_path_in_shell_profile() -> bool:
-    """Добавить ~/.local/bin в PATH в ~/.profile если нет."""
+    """Добавить ~/.local/bin в PATH (shell, systemd user env, KDE)."""
     bin_dir = str(local_bin_dir())
     line = f'export PATH="{bin_dir}:$PATH"  # TouchFlow'
-    profile = home() / ".profile"
-    bashrc = home() / ".bashrc"
     changed = False
-    for f in (profile, bashrc):
-        if not f.exists():
-            continue
-        text = f.read_text(encoding="utf-8", errors="replace")
-        if bin_dir in text:
-            continue
-        with f.open("a", encoding="utf-8") as out:
-            out.write(f"\n{line}\n")
+
+    for f in (home() / ".profile", home() / ".bashrc"):
+        if f.exists():
+            text = f.read_text(encoding="utf-8", errors="replace")
+            if bin_dir not in text:
+                with f.open("a", encoding="utf-8") as out:
+                    out.write(f"\n{line}\n")
+                changed = True
+        elif f.name == ".profile":
+            f.write_text(f"{line}\n", encoding="utf-8")
+            changed = True
+
+    # systemd --user (KDE Wayland, GNOME)
+    env_d = home() / ".config" / "environment.d"
+    env_d.mkdir(parents=True, exist_ok=True)
+    env_file = env_d / "99-touchflow.conf"
+    env_content = f'PATH="{bin_dir}:$PATH"\n'
+    if not env_file.exists() or env_file.read_text(encoding="utf-8") != env_content:
+        env_file.write_text(env_content, encoding="utf-8")
         changed = True
-    if not profile.exists() and not changed:
-        profile.write_text(f"{line}\n", encoding="utf-8")
+
+    # KDE Plasma
+    plasma_env = home() / ".config" / "plasma-workspace" / "env"
+    plasma_env.mkdir(parents=True, exist_ok=True)
+    plasma_script = plasma_env / "touchflow.sh"
+    plasma_content = f'#!/bin/sh\nexport PATH="{bin_dir}:$PATH"\n'
+    if not plasma_script.exists() or plasma_script.read_text(encoding="utf-8") != plasma_content:
+        plasma_script.write_text(plasma_content, encoding="utf-8")
+        plasma_script.chmod(0o755)
         changed = True
+
     return changed
+
+
+def fix_gtk4_settings_ini() -> bool:
+    """Убрать gtk-modules из gtk-4.0/settings.ini (ломает GTK4)."""
+    ini = home() / ".config" / "gtk-4.0" / "settings.ini"
+    if not ini.exists():
+        return False
+    lines = ini.read_text(encoding="utf-8", errors="replace").splitlines()
+    new_lines = [ln for ln in lines if not ln.strip().startswith("gtk-modules")]
+    if len(new_lines) == len(lines):
+        return False
+    ini.write_text("\n".join(new_lines) + ("\n" if new_lines else ""), encoding="utf-8")
+    return True
 
 
 def patch_desktop_file(content: str) -> str:
@@ -98,7 +128,7 @@ def symlink_or_copy(src: Path, dst: Path) -> None:
 def ensure_pip_scripts(names: tuple[str, ...] = ()) -> list[str]:
     """Скопировать/связать entry points в ~/.local/bin после pip install."""
     if not names:
-        names = ("touchflowd", "touchflow-settings", "touchflow-cli")
+        names = ("touchflowd", "touchflow-settings", "touchflow-cli", "touchflow-doctor", "touchflow-installer")
     ensure_local_bin()
     installed: list[str] = []
     for name in names:
@@ -166,6 +196,14 @@ def doctor_report() -> tuple[bool, str]:
     else:
         lines.append("\nuinput: ⚠ нет доступа — sudo usermod -aG input $USER && перелогин")
         ok = False
+
+    gtk_ini = home() / ".config" / "gtk-4.0" / "settings.ini"
+    if gtk_ini.exists() and "gtk-modules" in gtk_ini.read_text(encoding="utf-8", errors="replace"):
+        lines.append("\ngtk-4.0/settings.ini: ⚠ удалите gtk-modules (touchflow-doctor --fix)")
+
+    if not path_ok:
+        lines.append(f"\nДля текущего терминала: export PATH=\"{bin_dir}:$PATH\"")
+        lines.append("Или перелогиньтесь / перезапустите KDE")
 
     lines.append("")
     lines.append("OK — всё в порядке" if ok else "ЕСТЬ ПРОБЛЕМЫ — запустите: ./scripts/install.sh")
