@@ -19,7 +19,19 @@
 
 ## Установка
 
-### Из исходников (рекомендуется)
+> **Скачать готовые сборки:** https://github.com/eturnercus/keyboard/releases
+
+### AppImage (рекомендуется)
+
+```bash
+# Скачайте из Releases, затем:
+chmod +x TouchFlow-Keyboard-1.0.1-x86_64.AppImage
+./TouchFlow-Keyboard-1.0.1-x86_64.AppImage
+```
+
+Откроется графический установщик — нажмите «Установить».
+
+### Из исходников
 
 ```bash
 git clone https://github.com/eturnercus/keyboard.git
