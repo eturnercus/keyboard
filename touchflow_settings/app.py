@@ -342,6 +342,7 @@ class SettingsApp(Adw.Application):
             ("Цифровой ряд", "show_number_row", cfg.layout.show_number_row),
             ("Стрелки", "show_arrow_row", cfg.layout.show_arrow_row),
             ("Numpad", "show_numpad", cfg.layout.show_numpad),
+            ("Быстрые кнопки", "show_quick_actions", cfg.layout.show_quick_actions),
             ("Компактный режим", "compact_mode", cfg.layout.compact_mode),
         ]:
             b.append(SwitchRow(title, "", val,

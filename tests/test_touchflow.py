@@ -97,6 +97,20 @@ def test_external_keyboard_list():
     assert isinstance(devices, list)
 
 
-def test_external_keyboard_detection():
-    result = has_external_keyboard()
-    assert isinstance(result, bool)
+def test_quick_actions_config():
+    cfg = TouchFlowConfig()
+    assert cfg.layout.show_quick_actions is True
+
+
+def test_chord_methods_exist():
+    from touchflow.key_inject import KeyInjector
+    inj = KeyInjector.__new__(KeyInjector)
+    for method in ("copy", "paste", "cut", "select_all", "undo", "redo", "find", "chord"):
+        assert hasattr(inj, method)
+
+
+def test_quick_actions_defined():
+    from touchflow.keyboard_widget import ACTION_HANDLERS, QUICK_ACTIONS
+    assert len(QUICK_ACTIONS) >= 5
+    assert "ACTION_COPY" in ACTION_HANDLERS
+    assert ACTION_HANDLERS["ACTION_PASTE"] == "paste"

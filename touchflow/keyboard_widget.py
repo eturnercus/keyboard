@@ -24,6 +24,27 @@ from touchflow.layouts import (
 
 log = logging.getLogger(__name__)
 
+# Быстрые действия: (подпись, action_id, ширина)
+QUICK_ACTIONS = [
+    ("Копир.", "ACTION_COPY", 1.3),
+    ("Встав.", "ACTION_PASTE", 1.3),
+    ("Вырез.", "ACTION_CUT", 1.2),
+    ("Всё", "ACTION_SELECT_ALL", 1.0),
+    ("Отмена", "ACTION_UNDO", 1.2),
+    ("Повт.", "ACTION_REDO", 1.1),
+    ("Поиск", "ACTION_FIND", 1.1),
+]
+
+ACTION_HANDLERS = {
+    "ACTION_COPY": "copy",
+    "ACTION_PASTE": "paste",
+    "ACTION_CUT": "cut",
+    "ACTION_SELECT_ALL": "select_all",
+    "ACTION_UNDO": "undo",
+    "ACTION_REDO": "redo",
+    "ACTION_FIND": "find",
+}
+
 
 class TouchKey(Gtk.Button):
     def __init__(self, label: str, action: str, config: TouchFlowConfig, injector: KeyInjector, on_action: Callable):
@@ -70,6 +91,10 @@ class TouchKey(Gtk.Button):
             return
         if action == "HIDE":
             self._on_action("hide")
+            return
+        if action in ACTION_HANDLERS:
+            getattr(self._injector, ACTION_HANDLERS[action])()
+            self._on_action("quick_action", action)
             return
         if action.startswith("KEY_"):
             self._injector.tap_key(action)
@@ -159,6 +184,9 @@ class KeyboardWidget(Gtk.Box):
 
         if cfg.layout.show_arrow_row:
             self._add_row(ROW_ARROWS)
+
+        if cfg.layout.show_quick_actions:
+            self._add_row(QUICK_ACTIONS)
 
         self._add_bottom_row()
 

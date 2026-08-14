@@ -28,6 +28,9 @@ snap:
 deb:
 	bash scripts/build-deb.sh
 
+appimage:
+	bash scripts/build-appimage.sh
+
 clean:
 	rm -rf dist build *.egg-info .pytest_cache
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
