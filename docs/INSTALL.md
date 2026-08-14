@@ -2,9 +2,15 @@
 
 ### AppImage (рекомендуется — один клик)
 
-1. Скачайте `TouchFlow-Keyboard-*-x86_64.AppImage` из [Releases](https://github.com/eturnercus/keyboard/releases)
-2. `chmod +x TouchFlow-Keyboard-*.AppImage`
-3. Запустите — откроется графический установщик
+1. Проверьте архитектуру: `uname -m` (x86_64 или aarch64)
+2. Скачайте нужный AppImage из [Releases](https://github.com/eturnercus/keyboard/releases)
+3. `chmod +x TouchFlow-Keyboard-*.AppImage`
+4. Запустите — откроется графический установщик
+
+**Альтернатива (любая архитектура):**
+```bash
+curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-1.0.2.sh | bash
+```
 
 ### Другие способы
 
