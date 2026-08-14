@@ -37,20 +37,20 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-            body: |
+          body: |
             ## TouchFlow Keyboard 1.0.1
 
             ### Исправления
             - Shell-установщик Python → полная интеграция (KDE, systemd)
-            - C++: рабочий демон, настройки `touchflow-settings-cpp`
-            - Универсальный удалятор `scripts/uninstall.sh`
+            - C++: рабочий демон, настройки touchflow-settings-cpp
+            - Универсальный удалятор scripts/uninstall.sh
 
             ### Python 1.0.1 (production)
-            - `touchflow-install-1.0.1.sh`, AppImage, wheel
+            - touchflow-install-1.0.1.sh, AppImage, wheel
 
             ### C++ 1.0.1 (experimental)
-            - `TouchFlow-Keyboard-Cpp-*.AppImage`, `touchflow-install-cpp-1.0.1.sh`
-            - `touchflow-settings-cpp`
+            - TouchFlow-Keyboard-Cpp-*.AppImage, touchflow-install-cpp-1.0.1.sh
+            - touchflow-settings-cpp
           files: |
             dist/*.whl
             dist/*.tar.gz
