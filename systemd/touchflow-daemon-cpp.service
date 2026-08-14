@@ -10,7 +10,8 @@ ExecStart=%h/.local/bin/touchflowd-cpp
 Restart=on-failure
 RestartSec=3
 Environment=GTK_USE_PORTAL=0
-Environment=AT_SPI_BUS_ADDRESS=unix:path=/run/user/%U/at-spi/bus
+Environment=AT_SPI_BUS_ADDRESS=unix:path=%t/at-spi/bus
+PassEnvironment=WAYLAND_DISPLAY DISPLAY XAUTHORITY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE KDE_FULL_SESSION
 
 [Install]
 WantedBy=graphical-session.target

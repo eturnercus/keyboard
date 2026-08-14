@@ -27,10 +27,29 @@ def _touchflowd_path() -> str:
     return resolve_cmd("touchflowd")
 
 
+def _session_bus():
+    import dbus
+
+    return dbus.SessionBus()
+
+
+def _name_on_bus() -> bool:
+    """Проверить well-known имя без D-Bus activation (избегает зависания)."""
+    try:
+        import dbus
+
+        return bool(_session_bus().name_has_owner(DBUS_BUS))
+    except Exception as e:
+        log.debug("name_has_owner failed: %s", e)
+        return False
+
+
 def _dbus_python_iface():
     import dbus
 
-    bus = dbus.SessionBus()
+    bus = _session_bus()
+    if not bus.name_has_owner(DBUS_BUS):
+        raise RuntimeError(f"D-Bus name {DBUS_BUS} not on session bus")
     obj = bus.get_object(DBUS_BUS, DBUS_PATH)
     return dbus.Interface(obj, DBUS_INTERFACE)
 
@@ -38,7 +57,9 @@ def _dbus_python_iface():
 def _dbus_python_props():
     import dbus
 
-    bus = dbus.SessionBus()
+    bus = _session_bus()
+    if not bus.name_has_owner(DBUS_BUS):
+        raise RuntimeError(f"D-Bus name {DBUS_BUS} not on session bus")
     obj = bus.get_object(DBUS_BUS, DBUS_PATH)
     return dbus.Interface(obj, dbus.PROPERTIES_IFACE)
 
@@ -51,6 +72,9 @@ def _pydbus_proxy():
 
 def _call_method(method: str, *args) -> None:
     """Вызов метода D-Bus через dbus-python (приоритет) или pydbus."""
+    if not _name_on_bus():
+        raise RuntimeError(_DAEMON_START_HINT)
+
     try:
         import dbus  # noqa: F401
 
@@ -69,6 +93,9 @@ def _call_method(method: str, *args) -> None:
 
 
 def _get_property(name: str):
+    if not _name_on_bus():
+        raise RuntimeError(_DAEMON_START_HINT)
+
     try:
         import dbus
 
@@ -84,14 +111,31 @@ def _get_property(name: str):
 
 
 def dbus_available() -> bool:
-    try:
-        _get_property("Version")
-        return True
-    except Exception:
+    return _name_on_bus()
+
+
+def _systemd_active() -> bool:
+    if not shutil.which("systemctl"):
         return False
+    r = subprocess.run(
+        ["systemctl", "--user", "is-active", "touchflow-daemon"],
+        capture_output=True,
+        text=True,
+    )
+    return r.returncode == 0 and r.stdout.strip() == "active"
 
 
-def ensure_daemon_running(wait_seconds: float = 12.0) -> None:
+def _journal_hint() -> str:
+    r = subprocess.run(
+        ["journalctl", "--user", "-u", "touchflow-daemon", "-n", "2", "--no-pager"],
+        capture_output=True,
+        text=True,
+    )
+    lines = [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip()]
+    return lines[-1] if lines else "journalctl --user -u touchflow-daemon -e"
+
+
+def ensure_daemon_running(wait_seconds: float = 15.0) -> None:
     """Запустить демон если D-Bus недоступен (systemd → прямой spawn)."""
     if dbus_available():
         return
@@ -103,13 +147,27 @@ def ensure_daemon_running(wait_seconds: float = 12.0) -> None:
 
     if shutil.which("systemctl"):
         subprocess.run(
-            ["systemctl", "--user", "start", "touchflow-daemon"],
+            ["systemctl", "--user", "import-environment", "WAYLAND_DISPLAY", "DISPLAY", "XDG_CURRENT_DESKTOP"],
             capture_output=True,
             text=True,
             env=env,
         )
-        if _wait_for_dbus(wait_seconds / 2):
+        if not _systemd_active():
+            subprocess.run(
+                ["systemctl", "--user", "start", "touchflow-daemon"],
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+        if _wait_for_dbus(wait_seconds):
             return
+
+    if _systemd_active():
+        raise RuntimeError(
+            "Демон active, но D-Bus не зарегистрирован.\n"
+            f"  {_journal_hint()}\n"
+            "  systemctl --user restart touchflow-daemon"
+        )
 
     touchflowd = _touchflowd_path()
     if Path(touchflowd).exists():
@@ -120,7 +178,7 @@ def ensure_daemon_running(wait_seconds: float = 12.0) -> None:
             start_new_session=True,
             env=env,
         )
-        if _wait_for_dbus(wait_seconds / 2):
+        if _wait_for_dbus(min(wait_seconds, 8.0)):
             return
 
     raise RuntimeError(_DAEMON_START_HINT)

@@ -30,7 +30,7 @@ install_cpp_systemd() {
     cat > "${svc_dir}/touchflow-daemon-cpp.service" <<EOF
 [Unit]
 Description=TouchFlow C++ On-Screen Keyboard
-After=graphical-session.target
+After=graphical-session.target dbus.service
 PartOf=graphical-session.target
 
 [Service]
@@ -39,11 +39,13 @@ ExecStart=${bin}
 Restart=on-failure
 RestartSec=3
 Environment=GTK_USE_PORTAL=0
-Environment=AT_SPI_BUS_ADDRESS=unix:path=/run/user/%U/at-spi/bus
+Environment=AT_SPI_BUS_ADDRESS=unix:path=%t/at-spi/bus
+PassEnvironment=WAYLAND_DISPLAY DISPLAY XAUTHORITY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE KDE_FULL_SESSION
 
 [Install]
 WantedBy=graphical-session.target
 EOF
+    systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP 2>/dev/null || true
     systemctl --user daemon-reload 2>/dev/null || true
     systemctl --user enable --now touchflow-daemon-cpp.service 2>/dev/null || true
 }

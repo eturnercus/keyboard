@@ -13,7 +13,7 @@ private:
     Callback callback_;
     void* data_;
     bool connected_{false};
-    bool detect() const;
+    bool detect_pluggable() const;
 };
 
 }  // namespace touchflow

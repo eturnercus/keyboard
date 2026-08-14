@@ -24,29 +24,37 @@ static bool should_skip(const std::string& name) {
     return false;
 }
 
-ExternalKeyboardMonitor::ExternalKeyboardMonitor(Callback cb, void* data)
-    : callback_(cb), data_(data) {
-    connected_ = detect();
+static bool is_keyboard_block(const std::string& name, const std::string& handlers, bool has_keys) {
+    if (!has_keys || should_skip(name)) return false;
+    return handlers.find("event") != std::string::npos && handlers.find("kbd") != std::string::npos;
 }
 
-bool ExternalKeyboardMonitor::detect() const {
+ExternalKeyboardMonitor::ExternalKeyboardMonitor(Callback cb, void* data)
+    : callback_(cb), data_(data) {
+    connected_ = detect_pluggable();
+}
+
+bool ExternalKeyboardMonitor::detect_pluggable() const {
     std::ifstream in("/proc/bus/input/devices");
     if (!in) return false;
-    std::string block, line;
+    std::string line, name, bus, handlers;
     bool has_keys = false;
-    std::string name, bus;
-    auto flush = [&]() {
-        if (has_keys && !name.empty() && !should_skip(name)) {
-            if (bus.find("0019") == std::string::npos) return true;
-        }
+    auto check = [&]() -> bool {
+        if (!is_keyboard_block(name, handlers, has_keys)) return false;
+        // USB / Bluetooth / I2C HID — блокируют авто-показ
+        if (bus == "0003" || bus == "0005" || bus == "0018") return true;
+        return false;
+    };
+    auto reset = [&]() {
         has_keys = false;
         name.clear();
         bus.clear();
-        return false;
+        handlers.clear();
     };
     while (std::getline(in, line)) {
         if (line.empty()) {
-            if (flush()) return true;
+            if (check()) return true;
+            reset();
             continue;
         }
         if (line.rfind("N:", 0) == 0) {
@@ -57,16 +65,22 @@ bool ExternalKeyboardMonitor::detect() const {
             while (!name.empty() && (name.back() == '"' || name.back() == '\'')) name.pop_back();
         } else if (line.rfind("I:", 0) == 0) {
             auto pos = line.find("bus=");
-            if (pos != std::string::npos) bus = line.substr(pos + 4);
+            if (pos != std::string::npos) {
+                auto end = line.find_first_of(" \t", pos + 4);
+                bus = line.substr(pos + 4, end == std::string::npos ? std::string::npos : end - pos - 4);
+            }
+        } else if (line.rfind("H:", 0) == 0) {
+            auto pos = line.find("Handlers=");
+            if (pos != std::string::npos) handlers = line.substr(pos + 9);
         } else if (line.rfind("B:", 0) == 0 && line.find("EV_KEY") != std::string::npos) {
             has_keys = true;
         }
     }
-    return flush();
+    return check();
 }
 
 void ExternalKeyboardMonitor::poll() {
-    bool now = detect();
+    bool now = detect_pluggable();
     if (now != connected_) {
         connected_ = now;
         if (callback_) callback_(connected_, data_);

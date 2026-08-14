@@ -28,11 +28,11 @@ def test_ensure_daemon_running_uses_systemctl_when_available():
     from touchflow import dbus_client
 
     with patch.object(dbus_client, "dbus_available", side_effect=[False, True]):
-        with patch.object(dbus_client.shutil, "which", return_value="/usr/bin/systemctl"):
-            with patch.object(dbus_client.subprocess, "run") as run:
-                dbus_client.ensure_daemon_running(wait_seconds=1)
-                run.assert_called_once()
-                assert "systemctl" in run.call_args[0][0]
+        with patch.object(dbus_client, "_systemd_active", return_value=False):
+            with patch.object(dbus_client.shutil, "which", return_value="/usr/bin/systemctl"):
+                with patch.object(dbus_client.subprocess, "run") as run:
+                    dbus_client.ensure_daemon_running(wait_seconds=0.5)
+                    assert any("start" in str(c) for c in run.call_args_list)
 
 
 def test_dbus_show_calls_method():

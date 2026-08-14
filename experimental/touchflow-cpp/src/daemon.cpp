@@ -87,8 +87,9 @@ void Daemon::setup_services() {
 int Daemon::run(int argc, char** argv, bool virtual_keyboard) {
     virtual_kb_ = virtual_keyboard;
     auto* app = adw_application_new("com.touchflow.Keyboard.Cpp", G_APPLICATION_DEFAULT_FLAGS);
-    g_signal_connect(app, "activate", G_CALLBACK(+[](AdwApplication* app, gpointer data) {
+    g_signal_connect(app, "startup", G_CALLBACK(+[](AdwApplication* app, gpointer data) {
         auto* self = static_cast<Daemon*>(data);
+        g_application_hold(G_APPLICATION(app));
         self->setup_ui(app);
         self->setup_services();
         if (self->virtual_kb_ || !self->config_.startup_hidden)

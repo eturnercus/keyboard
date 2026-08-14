@@ -31,6 +31,7 @@ echo "==> Установка TouchFlow ${VERSION}..."
 bash "$SRC/scripts/install.sh"
 
 echo "==> Запуск демона (без sudo)..."
+systemctl --user import-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP 2>/dev/null || true
 systemctl --user daemon-reload 2>/dev/null || true
 systemctl --user enable --now touchflow-daemon 2>/dev/null || true
 systemctl --user restart touchflow-daemon 2>/dev/null || true

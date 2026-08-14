@@ -68,15 +68,20 @@ class TouchFlowDaemon:
     def run(self, argv: list[str] | None = None) -> int:
         app = Gtk.Application(application_id=APP_ID)
 
-        def on_activate(application):
-            self._setup_ui()
-            self._setup_services()
+        def on_startup(application):
+            application.hold()
+            try:
+                self._setup_ui()
+                self._setup_services()
+            except Exception:
+                log.exception("TouchFlow startup failed")
+                raise
             if is_first_run():
                 show_onboarding_if_needed(self._window)
             if self._virtual_keyboard or not self.config.behavior.startup_hidden:
                 self.show_keyboard(manual=self._virtual_keyboard)
 
-        app.connect("activate", on_activate)
+        app.connect("startup", on_startup)
         return app.run(argv if argv is not None else sys.argv)
 
     def _setup_ui(self) -> None:
@@ -125,9 +130,10 @@ class TouchFlowDaemon:
             log.info("gtk4-layer-shell not found — using standard window placement")
 
     def _setup_services(self) -> None:
-        self.focus_watcher.start()
         self._dbus = TouchFlowDBusService(self)
-        self._dbus.publish()
+        if not self._dbus.publish():
+            log.error("D-Bus service failed to publish — CLI/settings won't work")
+        self.focus_watcher.start()
 
         bindings = {
             "grab_device": self.config.bindings.grab_device,

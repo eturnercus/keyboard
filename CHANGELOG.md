@@ -4,6 +4,11 @@
 
 Единый стабильный релиз TouchFlow Keyboard.
 
+### Fixed (2026-08-14 patch 5)
+- **D-Bus не регистрировался**: демон публиковал сервис только в `activate`; перенесено в `startup` + `hold()`
+- **CLI зависал**: `name_has_owner` вместо D-Bus activation loop
+- **C++**: `startup`+`hold`, systemd `%t`, USB/BT vs встроенная клавиатура
+
 ### Fixed (2026-08-14 patch 4)
 - **Демон не стартовал из systemd**: `%U` в user-unit ломал XDG_RUNTIME_DIR; исправлено на `%t`, PassEnvironment для Wayland
 
