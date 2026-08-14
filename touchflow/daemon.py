@@ -22,6 +22,7 @@ from touchflow.gestures import SwipeZone
 from touchflow.keyboard_widget import KeyboardWidget
 from touchflow.key_inject import KeyInjector
 from touchflow.learning import LearningEngine
+from touchflow.onboarding import is_first_run, show_onboarding_if_needed
 from touchflow.overlay import OverlayWindow
 from touchflow.physical_bindings import PhysicalButtonListener
 
@@ -39,11 +40,7 @@ class TouchFlowDaemon:
     def __init__(self):
         self.config = load_config()
         self.injector = KeyInjector()
-        self.learning = LearningEngine(
-            enabled=self.config.behavior.learning_enabled,
-            show_weight=self.config.behavior.show_learning_weight,
-            dismiss_weight=self.config.behavior.dismiss_learning_weight,
-        )
+        self.learning = LearningEngine(config=self.config.learning)
         self.kb_monitor = ExternalKeyboardMonitor(on_change=self._on_external_kb_change)
         self.focus_watcher = FocusWatcher(self._on_focus_change)
 
@@ -73,6 +70,8 @@ class TouchFlowDaemon:
         def on_activate(application):
             self._setup_ui()
             self._setup_services()
+            if is_first_run():
+                show_onboarding_if_needed(self._window)
             if not self.config.behavior.startup_hidden:
                 self.show_keyboard()
 
@@ -217,11 +216,7 @@ class TouchFlowDaemon:
 
     def reload_config(self) -> None:
         self.config = load_config()
-        self.learning = LearningEngine(
-            enabled=self.config.behavior.learning_enabled,
-            show_weight=self.config.behavior.show_learning_weight,
-            dismiss_weight=self.config.behavior.dismiss_learning_weight,
-        )
+        self.learning.update_config(self.config.learning)
         if self._keyboard:
             self._keyboard.apply_config(self.config)
         if self._overlay:
@@ -255,6 +250,10 @@ class TouchFlowDaemon:
         if action == "hide":
             self.hide_keyboard(manual=True)
 
+    def _switch_language(self) -> None:
+        if self._keyboard:
+            self._keyboard._handle_action("switch_lang")
+
     def _on_physical_action(self, action: str) -> None:
         GLib.idle_add(self._dispatch_physical, action)
 
@@ -264,6 +263,7 @@ class TouchFlowDaemon:
             "show_keyboard": lambda: self.show_keyboard(manual=True),
             "hide_keyboard": lambda: self.hide_keyboard(manual=True),
             "toggle_overlay": self.toggle_overlay,
+            "switch_layout": self._switch_language,
         }
         fn = handlers.get(action)
         if fn:

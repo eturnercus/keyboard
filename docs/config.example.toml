@@ -1,7 +1,4 @@
-# Конфигурация TouchFlow — пример
-# Скопируйте в ~/.config/touchflow/config.toml или настройте через touchflow-settings
-
-version = 1
+version = 2
 
 [colors]
 background = "#1e1e2e"
@@ -27,8 +24,6 @@ show_number_row = true
 show_function_row = true
 show_arrow_row = true
 show_numpad = false
-numpad_side = "right"
-compact_mode = false
 
 [behavior]
 auto_show = true
@@ -38,49 +33,44 @@ show_on_external_keyboard_disconnect = true
 swipe_from_bottom = true
 swipe_zone_height_px = 24
 swipe_threshold_px = 80
-learning_enabled = true
-dismiss_learning_weight = 1.0
-show_learning_weight = 0.5
 startup_hidden = true
-remember_position = true
-dock_bottom = true
-animation_ms = 200
-haptic_feedback = false
-click_sound = false
-long_press_repeat = true
-long_press_delay_ms = 400
 multitouch_enabled = true
-max_simultaneous_keys = 10
 
-[bindings]
-toggle_visibility = ["KEY_F23"]
-show_keyboard = []
-hide_keyboard = []
-switch_layout = []
-toggle_overlay = []
-grab_device = ""
+[languages]
+show_switch_key = true
+show_current_lang_on_key = true
+cycle_on_switch = true
 
-[locale]
-name = "ru"
-primary = "ru"
-secondary = "en"
-show_language_switch = true
-
-[greeter]
+[[languages.entries]]
+code = "ru"
+name = "Русский"
 enabled = true
-user = "touchflow"
-display = ":0"
+is_default = true
+
+[[languages.entries]]
+code = "en"
+name = "English"
+enabled = true
+is_default = false
+
+[learning]
+enabled = true
+threshold = 0.35
+dismiss_weight = 1.0
+show_weight = 0.5
+
+[[learning.rules]]
+app_id = "firefox"
+window_class = ""
+mode = "auto"
 
 [overlay]
 enabled = false
 opacity = 0.6
-edit_mode = false
 joystick_enabled = true
-joystick_x_percent = 8.0
-joystick_y_percent = 70.0
 joystick_size_px = 140
 
-excluded_apps = ["touchflow-settings"]
-excluded_window_classes = []
+[greeter]
+enabled = true
 
-custom_css = ""
+excluded_apps = ["touchflow-settings"]

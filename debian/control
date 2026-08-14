@@ -1,0 +1,31 @@
+Source: touchflow-keyboard
+Section: utils
+Priority: optional
+Maintainer: TouchFlow Contributors <touchflow@example.com>
+Build-Depends: debhelper (>= 13),
+               dh-python,
+               python3-all,
+               python3-setuptools,
+               python3-gi,
+               gir1.2-gtk-4.0,
+               gir1.2-adw-1,
+               gir1.2-atspi-2.0
+Standards-Version: 4.6.2
+Homepage: https://github.com/eturnercus/keyboard
+Rules-Requires-Root: no
+
+Package: touchflow-keyboard
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-gi,
+         gir1.2-gtk-4.0,
+         gir1.2-adw-1,
+         gir1.2-atspi-2.0,
+         at-spi2-core,
+         python3-evdev,
+         python3-dbus,
+         dbus-x11
+Description: TouchFlow — экранная клавиатура для Linux
+ Надёжная экранная клавиатура с мультитачем, авто-показом,
+ обучением, мультиязычностью и глубокой кастомизацией.

@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_install:
+	pip3 install --root=debian/touchflow-keyboard --no-deps .
+	install -Dm644 data/com.touchflow.Settings.desktop debian/touchflow-keyboard/usr/share/applications/com.touchflow.Settings.desktop
+	install -Dm644 data/com.touchflow.Keyboard.desktop debian/touchflow-keyboard/usr/share/applications/com.touchflow.Keyboard.desktop
+	install -Dm644 data/com.touchflow.Keyboard.metainfo.xml debian/touchflow-keyboard/usr/share/metainfo/com.touchflow.Keyboard.metainfo.xml
+	install -Dm644 assets/logo.svg debian/touchflow-keyboard/usr/share/icons/hicolor/scalable/apps/com.touchflow.Keyboard.svg
+	install -Dm644 systemd/touchflow-daemon.service debian/touchflow-keyboard/usr/lib/systemd/user/touchflow-daemon.service

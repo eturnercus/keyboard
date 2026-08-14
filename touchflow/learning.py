@@ -6,9 +6,12 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from touchflow.config import LEARNING_PATH, ensure_config_dir
+from touchflow.config import LEARNING_PATH, AppLearningRule, ensure_config_dir
+
+if TYPE_CHECKING:
+    from touchflow.config import LearningConfig
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +24,7 @@ class AppPattern:
     dismiss_count: int = 0
     immediate_hide_count: int = 0
     last_seen: float = 0.0
-    score: float = 0.5  # 0 = никогда не показывать, 1 = всегда показывать
+    score: float = 0.5
 
     def update_score(self, show_weight: float, dismiss_weight: float) -> None:
         total = self.show_count + self.dismiss_count + self.immediate_hide_count
@@ -47,14 +50,15 @@ class LearningStore:
             self.patterns[k] = AppPattern(app_id=app_id, window_class=window_class)
         return self.patterns[k]
 
-    def should_show(
-        self,
-        app_id: str,
-        window_class: str,
-        threshold: float = 0.35,
-    ) -> bool:
+    def should_show(self, app_id: str, window_class: str, threshold: float = 0.35) -> bool:
         pattern = self.get_pattern(app_id, window_class)
         return pattern.score >= threshold
+
+    def set_score(self, app_id: str, window_class: str, score: float) -> None:
+        p = self.get_pattern(app_id, window_class)
+        p.score = max(0.0, min(1.0, score))
+        p.last_seen = time.time()
+        self._save()
 
     def record_show(self, app_id: str, window_class: str, show_weight: float, dismiss_weight: float) -> None:
         p = self.get_pattern(app_id, window_class)
@@ -117,16 +121,48 @@ class LearningStore:
 
 
 class LearningEngine:
-    def __init__(self, enabled: bool = True, show_weight: float = 0.5, dismiss_weight: float = 1.0):
-        self.enabled = enabled
-        self.show_weight = show_weight
-        self.dismiss_weight = dismiss_weight
+    def __init__(self, config: "LearningConfig | None" = None, enabled: bool = True,
+                 show_weight: float = 0.5, dismiss_weight: float = 1.0, threshold: float = 0.35):
+        if config is not None:
+            self.enabled = config.enabled
+            self.show_weight = config.show_weight
+            self.dismiss_weight = config.dismiss_weight
+            self.threshold = config.threshold
+            self.rules = list(config.rules)
+        else:
+            self.enabled = enabled
+            self.show_weight = show_weight
+            self.dismiss_weight = dismiss_weight
+            self.threshold = threshold
+            self.rules: list[AppLearningRule] = []
         self.store = LearningStore.load()
 
+    def update_config(self, config: "LearningConfig") -> None:
+        self.enabled = config.enabled
+        self.show_weight = config.show_weight
+        self.dismiss_weight = config.dismiss_weight
+        self.threshold = config.threshold
+        self.rules = list(config.rules)
+
+    def _match_rule(self, app_id: str, window_class: str) -> AppLearningRule | None:
+        for rule in self.rules:
+            if rule.app_id and rule.app_id.lower() == app_id.lower():
+                if not rule.window_class or rule.window_class.lower() == window_class.lower():
+                    return rule
+            if rule.window_class and rule.window_class.lower() == window_class.lower():
+                return rule
+        return None
+
     def should_auto_show(self, app_id: str, window_class: str) -> bool:
+        rule = self._match_rule(app_id, window_class)
+        if rule:
+            if rule.mode == "always_show":
+                return True
+            if rule.mode == "always_hide":
+                return False
         if not self.enabled:
             return True
-        return self.store.should_show(app_id, window_class)
+        return self.store.should_show(app_id, window_class, self.threshold)
 
     def on_auto_show(self, app_id: str, window_class: str) -> None:
         if self.enabled:
@@ -142,3 +178,13 @@ class LearningEngine:
 
     def reset(self) -> None:
         self.store.reset()
+
+    def set_app_mode(self, app_id: str, window_class: str, mode: str) -> None:
+        for rule in self.rules:
+            if rule.app_id == app_id and rule.window_class == window_class:
+                rule.mode = mode
+                return
+        self.rules.append(AppLearningRule(app_id=app_id, window_class=window_class, mode=mode))
+
+    def get_all_patterns(self) -> list[AppPattern]:
+        return sorted(self.store.patterns.values(), key=lambda p: p.last_seen, reverse=True)

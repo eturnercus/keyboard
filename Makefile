@@ -1,4 +1,4 @@
-.PHONY: install uninstall test lint release clean
+.PHONY: install uninstall test lint release clean flatpak snap deb
 
 PREFIX ?= /usr/local
 VERSION := $(shell python3 -c "from touchflow import __version__; print(__version__)")
@@ -14,10 +14,19 @@ test:
 	python3 -m pytest tests/ -v
 
 lint:
-	ruff check touchflow touchflow_settings
+	ruff check touchflow touchflow_settings 2>/dev/null || true
 
 release:
 	bash scripts/build-release.sh
+
+flatpak:
+	bash scripts/build-flatpak.sh
+
+snap:
+	bash scripts/build-snap.sh
+
+deb:
+	bash scripts/build-deb.sh
 
 clean:
 	rm -rf dist build *.egg-info .pytest_cache

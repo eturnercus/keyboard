@@ -20,6 +20,7 @@ CONFIG_DIR = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / 
 CONFIG_PATH = CONFIG_DIR / "config.toml"
 LEARNING_PATH = CONFIG_DIR / "learning.json"
 OVERLAY_PATH = CONFIG_DIR / "overlay.toml"
+FIRST_RUN_PATH = CONFIG_DIR / ".first_run_done"
 
 
 def _hex(color: str) -> str:
@@ -129,7 +130,54 @@ class OverlayConfig:
 
 
 @dataclass
+class LanguageEntry:
+    code: str = "ru"
+    name: str = "Русский"
+    enabled: bool = True
+    is_default: bool = False
+
+
+@dataclass
+class LanguagesConfig:
+    """Управление языками клавиатуры."""
+
+    entries: list[LanguageEntry] = field(default_factory=lambda: [
+        LanguageEntry("ru", "Русский", True, True),
+        LanguageEntry("en", "English", True, False),
+    ])
+    show_switch_key: bool = True
+    switch_key_label: str = "🌐"
+    show_current_lang_on_key: bool = True
+    cycle_on_switch: bool = True
+
+
+@dataclass
+class AppLearningRule:
+    """Ручное правило: где показывать клавиатуру."""
+
+    app_id: str = ""
+    window_class: str = ""
+    mode: str = "auto"  # auto | always_show | always_hide
+
+
+@dataclass
+class LearningConfig:
+    enabled: bool = True
+    threshold: float = 0.35
+    dismiss_weight: float = 1.0
+    show_weight: float = 0.5
+    rules: list[AppLearningRule] = field(default_factory=list)
+
+
+@dataclass
+class FirstRunConfig:
+    onboarding_completed: bool = False
+
+
+@dataclass
 class LocaleLayout:
+    """Устаревшее — используйте languages. Оставлено для совместимости."""
+
     name: str = "ru"
     primary: str = "ru"
     secondary: str = "en"
@@ -147,18 +195,40 @@ class Greeter:
 
 @dataclass
 class TouchFlowConfig:
-    version: int = 1
+    version: int = 2
     colors: Colors = field(default_factory=Colors)
     typography: Typography = field(default_factory=Typography)
     layout: Layout = field(default_factory=Layout)
     behavior: Behavior = field(default_factory=Behavior)
     bindings: PhysicalBindings = field(default_factory=PhysicalBindings)
     overlay: OverlayConfig = field(default_factory=OverlayConfig)
+    languages: LanguagesConfig = field(default_factory=LanguagesConfig)
+    learning: LearningConfig = field(default_factory=LearningConfig)
+    first_run: FirstRunConfig = field(default_factory=FirstRunConfig)
     locale: LocaleLayout = field(default_factory=LocaleLayout)
     greeter: Greeter = field(default_factory=Greeter)
     custom_css: str = ""
     excluded_apps: list[str] = field(default_factory=lambda: ["touchflow-settings"])
     excluded_window_classes: list[str] = field(default_factory=list)
+
+    def get_enabled_languages(self) -> list[LanguageEntry]:
+        return [e for e in self.languages.entries if e.enabled]
+
+    def get_default_language(self) -> str:
+        for e in self.languages.entries:
+            if e.enabled and e.is_default:
+                return e.code
+        enabled = self.get_enabled_languages()
+        return enabled[0].code if enabled else "en"
+
+    def next_language(self, current: str) -> str:
+        enabled = [e.code for e in self.get_enabled_languages()]
+        if not enabled:
+            return current
+        if current not in enabled:
+            return enabled[0]
+        idx = enabled.index(current)
+        return enabled[(idx + 1) % len(enabled)]
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -174,11 +244,30 @@ class TouchFlowConfig:
             ("bindings", PhysicalBindings),
             ("locale", LocaleLayout),
             ("greeter", Greeter),
+            ("first_run", FirstRunConfig),
         ]:
             if section_name in data and isinstance(data[section_name], dict):
                 for key, value in data[section_name].items():
                     if hasattr(getattr(cfg, section_name), key):
                         setattr(getattr(cfg, section_name), key, value)
+        if "languages" in data and isinstance(data["languages"], dict):
+            ld = data["languages"]
+            langs = LanguagesConfig()
+            for key, value in ld.items():
+                if key == "entries" and isinstance(value, list):
+                    langs.entries = [LanguageEntry(**e) for e in value]
+                elif hasattr(langs, key):
+                    setattr(langs, key, value)
+            cfg.languages = langs
+        if "learning" in data and isinstance(data["learning"], dict):
+            lnd = data["learning"]
+            learn = LearningConfig()
+            for key, value in lnd.items():
+                if key == "rules" and isinstance(value, list):
+                    learn.rules = [AppLearningRule(**r) for r in value]
+                elif hasattr(learn, key):
+                    setattr(learn, key, value)
+            cfg.learning = learn
         if "overlay" in data and isinstance(data["overlay"], dict):
             od = data["overlay"]
             overlay = OverlayConfig()
@@ -191,6 +280,15 @@ class TouchFlowConfig:
         for key in ("custom_css", "excluded_apps", "excluded_window_classes", "version"):
             if key in data:
                 setattr(cfg, key, data[key])
+        # Миграция v1 → v2: behavior.learning_* → learning.*
+        if "behavior" in data and isinstance(data["behavior"], dict):
+            b = data["behavior"]
+            if "learning_enabled" in b:
+                cfg.learning.enabled = b["learning_enabled"]
+            if "show_learning_weight" in b:
+                cfg.learning.show_weight = b["show_learning_weight"]
+            if "dismiss_learning_weight" in b:
+                cfg.learning.dismiss_weight = b["dismiss_learning_weight"]
         return cfg
 
 
@@ -225,9 +323,18 @@ def reset_config() -> TouchFlowConfig:
     if CONFIG_PATH.exists():
         backup = CONFIG_PATH.with_suffix(".toml.bak")
         shutil.copy2(CONFIG_PATH, backup)
+    if LEARNING_PATH.exists():
+        LEARNING_PATH.unlink(missing_ok=True)
+    if FIRST_RUN_PATH.exists():
+        FIRST_RUN_PATH.unlink(missing_ok=True)
     cfg = copy.deepcopy(DEFAULT_CONFIG)
     save_config(cfg)
     return cfg
+
+
+def factory_reset() -> TouchFlowConfig:
+    """Полный сброс: настройки, обучение, флаг первого запуска."""
+    return reset_config()
 
 
 def export_config(dest: Path) -> None:
