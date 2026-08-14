@@ -233,7 +233,24 @@ make release   # dist/
 
 > Не запускайте оба демона одновременно. В KDE выберите **одну** виртуальную клавиатуру: TouchFlow (Python) или TouchFlow C++.
 
-### Из Releases (готовый бинарник)
+### AppImage (рекомендуется)
+
+```bash
+# Скачайте из Releases:
+# TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
+chmod +x TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
+./TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
+```
+
+Откроется графический установщик (zenity): поставит `touchflowd-cpp`, desktop-файлы для KDE и runtime GTK4.
+
+**Shell-установщик** (без AppImage, любая архитектура):
+
+```bash
+curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-cpp-1.0.0.sh | bash
+```
+
+### Из Releases (только бинарник)
 
 ```bash
 # Проверьте архитектуру

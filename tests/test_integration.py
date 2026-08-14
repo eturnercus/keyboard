@@ -30,3 +30,8 @@ def test_keyboard_uses_clicked_not_pressed_signal():
     text = Path("touchflow/keyboard_widget.py").read_text(encoding="utf-8")
     assert 'connect("clicked"' in text
     assert 'connect("pressed", self._on_pressed)' not in text
+
+
+def test_cpp_appimage_builder_exists():
+    assert Path("scripts/build-appimage-cpp.sh").exists()
+    assert Path("experimental/touchflow-cpp/bundle-install.sh").exists()

@@ -14,6 +14,24 @@
 - Простое обучение (порог показа)
 - KDE virtual keyboard desktop (`--virtual-keyboard`)
 
+## Установка
+
+### AppImage (рекомендуется)
+
+```bash
+# Из Releases: TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
+chmod +x TouchFlow-Keyboard-Cpp-*.AppImage
+./TouchFlow-Keyboard-Cpp-*.AppImage
+```
+
+### Shell / исходники
+
+```bash
+curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-cpp-1.0.0.sh | bash
+# или
+./scripts/install-cpp.sh
+```
+
 ## Сборка
 
 ```bash
@@ -24,6 +42,13 @@ cd experimental/touchflow-cpp
 CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ./build/touchflowd-cpp --version
+```
+
+Сборка AppImage-установщика:
+
+```bash
+make appimage-cpp
+# → dist/TouchFlow-Keyboard-Cpp-1.0.0-x86_64.AppImage
 ```
 
 ## Установка
