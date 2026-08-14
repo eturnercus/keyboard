@@ -2,7 +2,6 @@
 #include "keyboard_view.hpp"
 
 #include <iostream>
-#include <ctime>
 
 namespace touchflow {
 
@@ -20,6 +19,7 @@ void Daemon::show_keyboard(bool manual) {
         return;
     if (window_) {
         gtk_widget_set_visible(GTK_WIDGET(window_), TRUE);
+        gtk_window_present(window_);
         visible_ = true;
         manual_show_ = manual;
         if (manual)
@@ -28,7 +28,6 @@ void Daemon::show_keyboard(bool manual) {
 }
 
 void Daemon::hide_keyboard(bool manual) {
-    (void)manual;
     if (window_) {
         learning_.on_dismiss(current_focus_.app_id, current_focus_.window_class, manual);
         gtk_widget_set_visible(GTK_WIDGET(window_), FALSE);
@@ -74,7 +73,6 @@ void Daemon::setup_ui(AdwApplication* app) {
     keyboard_ = keyboard_view_new(config_, &injector_,
         [this](const std::string& a, const std::string& d) { on_keyboard_action(a, d); });
     adw_application_window_set_content(ADW_APPLICATION_WINDOW(window_), keyboard_);
-    gtk_widget_set_visible(GTK_WIDGET(window_), FALSE);
 }
 
 void Daemon::setup_services() {
@@ -83,23 +81,20 @@ void Daemon::setup_services() {
     ext_kb_ = std::make_unique<ExternalKeyboardMonitor>(&Daemon::on_ext_kb, this);
     poll_id_ = g_timeout_add_seconds(2, poll_ext_kb, this);
     if (!injector_.available())
-        std::cerr << "touchflow-cpp: key injection disabled (uinput)\n";
+        std::cerr << "touchflow-cpp: key injection disabled — add user to input group\n";
 }
 
 int Daemon::run(int argc, char** argv, bool virtual_keyboard) {
-    (void)argc;
-    (void)argv;
-    struct ActivateCtx { Daemon* self; bool virtual_kb; };
-    ActivateCtx ctx{this, virtual_keyboard};
+    virtual_kb_ = virtual_keyboard;
     auto* app = adw_application_new("com.touchflow.Keyboard.Cpp", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(+[](AdwApplication* app, gpointer data) {
-        auto* actx = static_cast<ActivateCtx*>(data);
-        actx->self->setup_ui(app);
-        actx->self->setup_services();
-        if (actx->virtual_kb)
-            actx->self->show_keyboard(true);
-    }), &ctx);
-    int status = g_application_run(G_APPLICATION(app), 0, nullptr);
+        auto* self = static_cast<Daemon*>(data);
+        self->setup_ui(app);
+        self->setup_services();
+        if (self->virtual_kb_ || !self->config_.startup_hidden)
+            self->show_keyboard(self->virtual_kb_);
+    }), this);
+    int status = g_application_run(G_APPLICATION(app), argc, argv);
     if (poll_id_) g_source_remove(poll_id_);
     g_object_unref(app);
     return status;

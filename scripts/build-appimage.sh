@@ -162,32 +162,8 @@ curl -fsSL "\${REPO}/archive/refs/heads/main.tar.gz" -o "\$TMP/src.tar.gz"
 tar -xzf "\$TMP/src.tar.gz" -C "\$TMP"
 SRC="\$TMP/keyboard-main"
 
-echo "==> Установка зависимостей (может запросить sudo)..."
-if command -v apt-get &>/dev/null; then
-    sudo apt-get update -qq
-    sudo apt-get install -y python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 \\
-        gir1.2-atspi-2.0 python3-evdev at-spi2-core python3-pip dbus-x11
-elif command -v dnf &>/dev/null; then
-    sudo dnf install -y python3-gobject gtk4 libadwaita at-spi2-core python3-evdev
-elif command -v pacman &>/dev/null; then
-    sudo pacman -S --needed python python-gobject gtk4 libadwaita at-spi2-core python-evdev
-fi
-
 echo "==> Установка TouchFlow..."
-python3 -m pip install --user "\$SRC" 2>/dev/null \\
-    || python3 -m pip install --user --break-system-packages "\$SRC"
-
-mkdir -p "\$HOME/.local/share/applications" "\$HOME/.config/systemd/user"
-cp "\$SRC/data/com.touchflow.Settings.desktop" "\$HOME/.local/share/applications/"
-cp "\$SRC/systemd/touchflow-daemon.service" "\$HOME/.config/systemd/user/"
-systemctl --user daemon-reload
-systemctl --user enable --now touchflow-daemon.service 2>/dev/null || true
-sudo usermod -aG input "\$USER" 2>/dev/null || true
-
-echo ""
-echo "✓ TouchFlow установлен!"
-echo "  Настройки: touchflow-settings"
-echo "  Перелогиньтесь для группы input."
+bash "\$SRC/scripts/install.sh"
 HEADER
 chmod +x "$INSTALLER_SH"
 

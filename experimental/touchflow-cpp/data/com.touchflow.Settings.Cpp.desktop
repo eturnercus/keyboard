@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=TouchFlow C++ Settings
+Name[ru]=Настройки TouchFlow C++
+Comment=Settings for TouchFlow C++ keyboard
+Comment[ru]=Настройки экранной клавиатуры TouchFlow C++
+Exec=touchflow-settings-cpp
+Icon=com.touchflow.Keyboard
+Terminal=false
+Categories=Settings;Utility;
+Keywords=keyboard;settings;touchflow;

@@ -1,6 +1,7 @@
 #include "focus_watcher.hpp"
 
 #include <atspi/atspi.h>
+#include <gtk/gtk.h>
 #include <iostream>
 #include <cstring>
 
@@ -21,23 +22,39 @@ FocusWatcher::FocusWatcher(Callback cb) : callback_(std::move(cb)) {}
 
 FocusWatcher::~FocusWatcher() { stop(); }
 
+void FocusWatcher::deliver_focus(const FocusInfo& info) {
+    if (callback_) callback_(info);
+}
+
+struct FocusDeliver {
+    FocusWatcher* watcher;
+    FocusInfo info;
+};
+
+static gboolean deliver_on_main_idle(gpointer data) {
+    auto* d = static_cast<FocusDeliver*>(data);
+    if (d->watcher) d->watcher->deliver_focus(d->info);
+    delete d;
+    return G_SOURCE_REMOVE;
+}
+
 void FocusWatcher::deliver(_AtspiAccessible* focused) {
     if (!callback_ || !focused) return;
     auto* acc = reinterpret_cast<AtspiAccessible*>(focused);
-    FocusInfo info;
+    auto* payload = new FocusDeliver{this, {}};
     gchar* role = atspi_accessible_get_role_name(acc, nullptr);
-    info.role = role ? role : "";
+    payload->info.role = role ? role : "";
     g_free(role);
-    info.is_text_entry = is_text_role(info.role.c_str());
+    payload->info.is_text_entry = is_text_role(payload->info.role.c_str());
 
     AtspiAccessible* app = atspi_accessible_get_application(acc, nullptr);
     if (app) {
         gchar* name = atspi_accessible_get_name(app, nullptr);
-        info.app_id = name ? name : "";
+        payload->info.app_id = name ? name : "";
         g_free(name);
         g_object_unref(app);
     }
-    callback_(info);
+    g_idle_add(deliver_on_main_idle, payload);
 }
 
 void atspi_focus_cb(_AtspiEvent* raw, void* data) {

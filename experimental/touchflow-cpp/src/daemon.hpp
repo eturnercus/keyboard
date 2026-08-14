@@ -30,6 +30,7 @@ private:
     bool manual_show_{false};
     FocusInfo current_focus_;
     guint poll_id_{0};
+    bool virtual_kb_{false};
 
     void setup_ui(AdwApplication* app);
     void setup_services();

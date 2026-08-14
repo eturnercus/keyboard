@@ -19,11 +19,20 @@ def test_systemd_not_hardcoded_usr():
     text = Path("systemd/touchflow-daemon.service").read_text(encoding="utf-8")
     assert "/usr/bin/touchflowd" not in text
     assert "Type=simple" in text
+    assert "GTK_MODULES" not in text
+    assert "AT_SPI_BUS_ADDRESS" in text
 
 
 def test_version_is_1_0_0():
     from touchflow import __version__
-    assert __version__ == "1.0.0"
+    assert __version__ == "1.0.1"
+
+
+def test_uninstall_script_exists():
+    assert Path("scripts/uninstall.sh").exists()
+    text = Path("scripts/uninstall.sh").read_text(encoding="utf-8")
+    assert "touchflow-daemon-cpp" in text
+    assert "touchflow-daemon.service" in text
 
 
 def test_keyboard_uses_clicked_not_pressed_signal():

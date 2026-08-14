@@ -22,6 +22,7 @@ public:
     ~FocusWatcher();
     bool start();
     void stop();
+    void deliver_focus(const FocusInfo& info);
 
 private:
     friend void atspi_focus_cb(_AtspiEvent* event, void* data);
