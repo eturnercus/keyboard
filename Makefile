@@ -7,8 +7,7 @@ install:
 	bash scripts/install.sh
 
 uninstall:
-	systemctl --user disable --now touchflow-daemon.service 2>/dev/null || true
-	pip3 uninstall -y touchflow-keyboard 2>/dev/null || true
+	bash scripts/uninstall.sh -y
 
 test:
 	python3 -m pytest tests/ -v

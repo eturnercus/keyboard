@@ -17,7 +17,7 @@ struct Config {
     bool hide_on_external_keyboard = true;
     bool swipe_from_bottom = true;
     bool learning_enabled = true;
-    bool multitouch_enabled = true;
+    bool startup_hidden = false;
     bool show_quick_actions = true;
     bool show_function_row = true;
     bool show_number_row = true;

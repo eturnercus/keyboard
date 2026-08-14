@@ -1,12 +1,12 @@
 [Unit]
-Description=TouchFlow On-Screen Keyboard (Python)
+Description=TouchFlow On-Screen Keyboard (C++)
 Documentation=https://github.com/eturnercus/keyboard
 After=graphical-session.target
 PartOf=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/touchflowd
+ExecStart=%h/.local/bin/touchflowd-cpp
 Restart=on-failure
 RestartSec=3
 Environment=GTK_USE_PORTAL=0

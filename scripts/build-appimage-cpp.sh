@@ -37,6 +37,8 @@ mkdir -p "$APPDIR/usr/bin" \
          "$APPDIR/usr/share/icons/hicolor/scalable/apps"
 
 install -m755 "$CPP/build/touchflowd-cpp" "$APPDIR/usr/bin/touchflowd-cpp"
+install -m755 "$CPP/build/touchflow-settings-cpp" "$APPDIR/usr/bin/touchflow-settings-cpp"
+install -m755 "$ROOT/scripts/lib/cpp-integration.sh" "$APPDIR/usr/share/touchflow-cpp/cpp-integration.sh"
 cp "$CPP/data/"*.desktop "$APPDIR/usr/share/touchflow-cpp/data/"
 install -m755 "$CPP/bundle-install.sh" "$APPDIR/usr/share/touchflow-cpp/bundle-install.sh"
 echo "$VERSION" > "$APPDIR/usr/share/touchflow-cpp/VERSION"

@@ -39,7 +39,7 @@ Config Config::load() {
         else if (key == "hide_on_external_keyboard") cfg.hide_on_external_keyboard = val == "true";
         else if (key == "show_quick_actions") cfg.show_quick_actions = val == "true";
         else if (key == "height_px") cfg.height_px = std::stoi(val);
-        else if (key == "learning_threshold") cfg.learning_threshold = std::stof(val);
+        else if (key == "startup_hidden") cfg.startup_hidden = val == "true";
     }
     return cfg;
 }

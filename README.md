@@ -328,6 +328,18 @@ show_quick_actions = true
 - C++ — для тестов нативной сборки и сравнения производительности
 
 
+## Удаление
+
+Универсальный скрипт для **Python и C++**:
+
+```bash
+./scripts/uninstall.sh          # с подтверждением
+./scripts/uninstall.sh -y       # без вопросов
+./scripts/uninstall.sh -y --purge-config   # + удалить ~/.config/touchflow
+```
+
+Или: `make uninstall`
+
 ## Устранение неполадок
 
 | Проблема | Решение |

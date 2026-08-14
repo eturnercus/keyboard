@@ -10,7 +10,7 @@ pkg_check_modules(ADW REQUIRED libadwaita-1)
 pkg_check_modules(EVDEV REQUIRED libevdev)
 pkg_check_modules(ATSPI REQUIRED atspi-2 dbus-1)
 
-set(SOURCES
+set(DAEMON_SOURCES
     src/main.cpp
     src/config.cpp
     src/layouts.cpp
@@ -22,14 +22,25 @@ set(SOURCES
     src/daemon.cpp
 )
 
-add_executable(touchflowd-cpp ${SOURCES})
-target_include_directories(touchflowd-cpp PRIVATE src ${GTK4_INCLUDE_DIRS} ${ADW_INCLUDE_DIRS} ${ATSPI_INCLUDE_DIRS})
-target_link_libraries(touchflowd-cpp
-    ${GTK4_LIBRARIES} ${ADW_LIBRARIES} ${EVDEV_LIBRARIES} ${ATSPI_LIBRARIES}
-    pthread
+set(SETTINGS_SOURCES
+    src/settings_main.cpp
+    src/settings_app.cpp
+    src/config.cpp
 )
-target_compile_options(touchflowd-cpp PRIVATE -Wall -Wextra)
 
-install(TARGETS touchflowd-cpp DESTINATION bin)
+add_executable(touchflowd-cpp ${DAEMON_SOURCES})
+add_executable(touchflow-settings-cpp ${SETTINGS_SOURCES})
+
+foreach(target touchflowd-cpp touchflow-settings-cpp)
+    target_include_directories(${target} PRIVATE src ${GTK4_INCLUDE_DIRS} ${ADW_INCLUDE_DIRS} ${ATSPI_INCLUDE_DIRS})
+    target_link_libraries(${target}
+        ${GTK4_LIBRARIES} ${ADW_LIBRARIES} ${EVDEV_LIBRARIES} ${ATSPI_LIBRARIES}
+        pthread
+    )
+    target_compile_options(${target} PRIVATE -Wall -Wextra)
+endforeach()
+
+install(TARGETS touchflowd-cpp touchflow-settings-cpp DESTINATION bin)
 install(FILES data/com.touchflow.Keyboard.Virtual.desktop DESTINATION share/applications)
 install(FILES data/com.touchflow.Keyboard.Cpp.desktop DESTINATION share/applications)
+install(FILES data/com.touchflow.Settings.Cpp.desktop DESTINATION share/applications)

@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.1] - 2026-08-14
+
+### Fixed
+- **Shell-установщик Python** теперь вызывает `scripts/install.sh` (KDE, virtual desktop, systemd)
+- **systemd**: убран `GTK_MODULES` (ломал GTK4), добавлен `AT_SPI_BUS_ADDRESS`
+- **C++ демон**: исправлен `g_application_run(argc, argv)`, показ клавиатуры при старте
+- **C++ AT-SPI**: колбэки в главный поток GTK через `g_idle_add`
+- **C++ настройки**: `touchflow-settings-cpp` (GTK4)
+
+### Added
+- `scripts/uninstall.sh` — удаление Python и C++ версий
+- `systemd/touchflow-daemon-cpp.service`
+- Полная интеграция C++ install (systemd, KDE, settings)
+
 ## [1.0.0] - 2026-08-14
 
 Единый релиз **1.0.0** — Python (основная) и C++ (экспериментальная).
