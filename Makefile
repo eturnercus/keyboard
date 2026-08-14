@@ -33,6 +33,11 @@ appimage:
 appimage-cpp:
 	bash scripts/build-appimage-cpp.sh
 
+appimage-uninstall:
+	bash scripts/build-appimage-uninstall.sh
+
+appimage-all: appimage appimage-cpp appimage-uninstall
+
 clean:
 	rm -rf dist build *.egg-info .pytest_cache
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

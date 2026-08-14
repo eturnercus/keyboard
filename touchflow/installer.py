@@ -112,12 +112,15 @@ def install_touchflow(log_cb) -> tuple[bool, str]:
         _run(["sudo", "usermod", "-aG", "input", user])
 
     log_cb("Готово!")
+    from touchflow.paths import doctor_report, resolve_cmd
+    _, doctor = doctor_report()
     return True, (
         "TouchFlow установлен!\n\n"
-        "• KDE: Параметры системы → Устройства ввода → Виртуальная клавиатура → TouchFlow\n"
-        "• Настройки: touchflow-settings\n"
-        "• CLI: touchflow-cli toggle\n"
-        "• Перелогиньтесь для группы input"
+        f"• Настройки: {resolve_cmd('touchflow-settings')}\n"
+        "• Проверка: touchflow-doctor\n"
+        "• KDE: Параметры → Виртуальная клавиатура → TouchFlow\n"
+        "• Перелогиньтесь для группы input\n\n"
+        f"{doctor}"
     )
 
 

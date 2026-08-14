@@ -13,6 +13,16 @@ register_kde_cpp() {
     done
 }
 
+ensure_local_bin_path() {
+    local bin_dir="${HOME}/.local/bin"
+    mkdir -p "$bin_dir"
+    for f in "${HOME}/.profile" "${HOME}/.bashrc"; do
+        [[ -f "$f" ]] || continue
+        grep -q "$bin_dir" "$f" 2>/dev/null && continue
+        echo "export PATH=\"${bin_dir}:\$PATH\"  # TouchFlow" >> "$f"
+    done
+}
+
 install_cpp_systemd() {
     local bin="${HOME}/.local/bin/touchflowd-cpp"
     local svc_dir="${HOME}/.config/systemd/user"

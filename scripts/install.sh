@@ -39,9 +39,18 @@ if command -v update-desktop-database &>/dev/null; then
     update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
 fi
 
+echo "==> Проверка установки..."
+if command -v touchflow-doctor &>/dev/null; then
+    touchflow-doctor || true
+elif [[ -f "$ROOT/touchflow/doctor.py" ]]; then
+    python3 -m touchflow.doctor || true
+fi
+
 echo ""
 echo "✓ TouchFlow установлен!"
-echo "  KDE: Параметры системы → Устройства ввода → Виртуальная клавиатура → TouchFlow"
-echo "  Настройки: touchflow-settings"
-echo "  Проверка: systemctl --user status touchflow-daemon"
+SETTINGS=$(python3 -c "from touchflow.paths import resolve_cmd; print(resolve_cmd('touchflow-settings'))" 2>/dev/null || echo "touchflow-settings")
+echo "  Настройки: $SETTINGS"
+echo "  Проверка: touchflow-doctor"
+echo "  KDE: Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow"
+echo "  Демон: systemctl --user status touchflow-daemon"
 echo "  Перелогиньтесь для группы input."
