@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=TouchFlow Keyboard
+Comment=On-screen keyboard daemon (auto-starts via systemd)
+Exec=/usr/bin/touchflowd
+Icon=com.touchflow.Keyboard
+Terminal=false
+Type=Application
+Categories=Utility;Accessibility;
+NoDisplay=true
+StartupNotify=false

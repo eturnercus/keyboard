@@ -1,0 +1,19 @@
+[Unit]
+Description=TouchFlow Keyboard for Display Manager (pre-login)
+Documentation=https://github.com/touchflow/touchflow-keyboard
+After=display-manager.service
+Before=display-manager.service
+Conflicts=display-manager.service
+
+[Service]
+Type=simple
+User=touchflow
+Group=touchflow
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/997
+ExecStart=/usr/bin/touchflowd
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=display-manager.service

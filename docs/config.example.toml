@@ -1,0 +1,86 @@
+# Конфигурация TouchFlow — пример
+# Скопируйте в ~/.config/touchflow/config.toml или настройте через touchflow-settings
+
+version = 1
+
+[colors]
+background = "#1e1e2e"
+key_background = "#313244"
+key_pressed = "#89b4fa"
+key_text = "#cdd6f4"
+accent = "#cba6f7"
+border = "#45475a"
+
+[typography]
+font_family = "Sans"
+font_size = 14
+label_size = 11
+bold_labels = false
+
+[layout]
+height_px = 280
+width_percent = 100
+key_spacing = 4
+key_radius = 8
+row_height = 52
+show_number_row = true
+show_function_row = true
+show_arrow_row = true
+show_numpad = false
+numpad_side = "right"
+compact_mode = false
+
+[behavior]
+auto_show = true
+auto_hide_on_blur = true
+hide_on_external_keyboard = true
+show_on_external_keyboard_disconnect = true
+swipe_from_bottom = true
+swipe_zone_height_px = 24
+swipe_threshold_px = 80
+learning_enabled = true
+dismiss_learning_weight = 1.0
+show_learning_weight = 0.5
+startup_hidden = true
+remember_position = true
+dock_bottom = true
+animation_ms = 200
+haptic_feedback = false
+click_sound = false
+long_press_repeat = true
+long_press_delay_ms = 400
+multitouch_enabled = true
+max_simultaneous_keys = 10
+
+[bindings]
+toggle_visibility = ["KEY_F23"]
+show_keyboard = []
+hide_keyboard = []
+switch_layout = []
+toggle_overlay = []
+grab_device = ""
+
+[locale]
+name = "ru"
+primary = "ru"
+secondary = "en"
+show_language_switch = true
+
+[greeter]
+enabled = true
+user = "touchflow"
+display = ":0"
+
+[overlay]
+enabled = false
+opacity = 0.6
+edit_mode = false
+joystick_enabled = true
+joystick_x_percent = 8.0
+joystick_y_percent = 70.0
+joystick_size_px = 140
+
+excluded_apps = ["touchflow-settings"]
+excluded_window_classes = []
+
+custom_css = ""

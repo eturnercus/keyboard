@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include Makefile
+recursive-include assets *
+recursive-include data *
+recursive-include systemd *
+recursive-include scripts *
