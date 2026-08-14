@@ -48,6 +48,10 @@ cd keyboard
 
 Перелогиньтесь для группы `input`.
 
+### C++ (экспериментальная, без Python)
+
+См. раздел **[Установка C++ 1.0.0](#установка-c-10-экспериментальная)** ниже или `./scripts/install-cpp.sh`.
+
 ### AppImage (установщик в один клик)
 
 ```bash
@@ -214,15 +218,98 @@ make test      # 10 тестов
 make release   # dist/
 ```
 
-## Эксперимент: C++ 1.0.0
+## Установка C++ 1.0.0 (экспериментальная)
 
-Нативная версия: [`experimental/touchflow-cpp/`](experimental/touchflow-cpp/README.md)
+Нативный демон **`touchflowd-cpp`** — без Python в рантайме. Статус: **experimental**; основная версия — Python (`touchflowd`).
+
+Подробности: [`experimental/touchflow-cpp/README.md`](experimental/touchflow-cpp/README.md)
+
+| | Python 1.0.0 | C++ 1.0.0 |
+|---|--------------|-----------|
+| Бинарник | `touchflowd` | `touchflowd-cpp` |
+| Установка | `./scripts/install.sh` | `./scripts/install-cpp.sh` |
+| Настройки | `touchflow-settings` | `~/.config/touchflow/config-cpp.toml` |
+| Языки | RU/EN/UK/DE/FR | RU/EN |
+
+> Не запускайте оба демона одновременно. В KDE выберите **одну** виртуальную клавиатуру: TouchFlow (Python) или TouchFlow C++.
+
+### Из Releases (готовый бинарник)
 
 ```bash
-./scripts/install-cpp.sh
-# или
-cd experimental/touchflow-cpp && CXX=g++ cmake -B build && cmake --build build
+# Проверьте архитектуру
+uname -m    # x86_64 или aarch64
+
+# Скачайте touchflowd-cpp-<arch> из https://github.com/eturnercus/keyboard/releases/tag/v1.0.0
+chmod +x touchflowd-cpp-x86_64
+mkdir -p ~/.local/bin
+mv touchflowd-cpp-x86_64 ~/.local/bin/touchflowd-cpp
+
+# Desktop-файлы для KDE (виртуальная клавиатура)
+mkdir -p ~/.local/share/applications
+cp experimental/touchflow-cpp/data/*.desktop ~/.local/share/applications/
+sed -i "s|Exec=touchflowd-cpp|Exec=$HOME/.local/bin/touchflowd-cpp|g" \
+  ~/.local/share/applications/com.touchflow.Keyboard.*.desktop
+update-desktop-database ~/.local/share/applications
 ```
+
+### Из исходников (рекомендуется)
+
+```bash
+git clone https://github.com/eturnercus/keyboard.git
+cd keyboard
+./scripts/install-cpp.sh
+```
+
+Скрипт ставит зависимости (Debian/Ubuntu), собирает проект, копирует `touchflowd-cpp` в `~/.local/bin/`, регистрирует desktop-файлы и добавляет пользователя в группу `input`.
+
+**Перелогиньтесь** после установки (нужна группа `input` для `/dev/uinput`).
+
+### Ручная сборка
+
+```bash
+# Debian/Ubuntu
+sudo apt install build-essential cmake pkg-config g++ \
+  libgtk-4-dev libadwaita-1-dev libevdev-dev libatspi2.0-dev at-spi2-core
+
+# Fedora
+sudo dnf install gcc-c++ cmake pkg-config gtk4-devel libadwaita-devel \
+  libevdev-devel at-spi2-core-devel
+
+cd experimental/touchflow-cpp
+CXX=g++ cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+
+./build/touchflowd-cpp --version
+```
+
+### Запуск
+
+```bash
+touchflowd-cpp                    # обычный режим (авто-показ при фокусе)
+touchflowd-cpp --virtual-keyboard # режим KDE/GNOME виртуальной клавиатуры
+```
+
+**KDE Wayland:** Параметры системы → Устройства ввода → Виртуальная клавиатура → **TouchFlow** (или TouchFlow C++).
+
+Конфиг (опционально): `~/.config/touchflow/config-cpp.toml`
+
+```toml
+[behavior]
+auto_show = true
+hide_on_external_keyboard = true
+
+[layout]
+height_px = 280
+show_quick_actions = true
+```
+
+### C++ и Python вместе
+
+- Python: `touchflowd`, `touchflow-settings`, systemd `touchflow-daemon.service`
+- C++: только `touchflowd-cpp`, без GUI-настроек
+- Для продакшена на dan24 используйте **Python** (`touchflow-install-1.0.0.sh`)
+- C++ — для тестов нативной сборки и сравнения производительности
+
 
 ## Устранение неполадок
 
