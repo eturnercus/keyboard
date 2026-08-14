@@ -25,9 +25,16 @@
 
 ```bash
 # Скачайте из Releases, затем:
-chmod +x TouchFlow-Keyboard-1.0.1-x86_64.AppImage
-./TouchFlow-Keyboard-1.0.1-x86_64.AppImage
+chmod +x TouchFlow-Keyboard-1.0.2-x86_64.AppImage
+./TouchFlow-Keyboard-1.0.2-x86_64.AppImage
 ```
+
+> **ARM (aarch64)?** Скачайте `TouchFlow-Keyboard-*-aarch64.AppImage` или используйте shell-установщик:
+> ```bash
+> curl -fsSL https://github.com/eturnercus/keyboard/releases/latest/download/touchflow-install-1.0.2.sh | bash
+> ```
+
+> **Ошибка «формат выполняемого файла»?** Вы скачали x86_64 на ARM (или наоборот). Проверьте: `uname -m`
 
 Откроется графический установщик — нажмите «Установить».
 
