@@ -116,8 +116,12 @@ class SettingsApp(Adw.Application):
         except Exception as e:
             self._daemon_error_dialog(
                 "Не удалось показать клавиатуру",
-                f"Демон не запущен или D-Bus недоступен.\n\n{e}\n\n"
-                "Выполните: systemctl --user restart touchflow-daemon",
+                f"{e}\n\n"
+                "Важно: НЕ используйте sudo с systemctl --user!\n\n"
+                "Выполните в терминале (без sudo):\n"
+                "  systemctl --user restart touchflow-daemon\n"
+                "  touchflow-cli show\n"
+                "  touchflow-doctor",
             )
 
     def _hide_keyboard(self, *_):

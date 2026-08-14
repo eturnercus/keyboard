@@ -6,15 +6,17 @@ from unittest.mock import MagicMock, patch
 def test_try_show_existing_daemon_success():
     from touchflow.dbus_client import try_show_existing_daemon
 
-    with patch("touchflow.dbus_client.dbus_show") as show:
-        assert try_show_existing_daemon() is True
-        show.assert_called_once()
+    proxy = MagicMock()
+    with patch("touchflow.dbus_client.dbus_available", return_value=True):
+        with patch("touchflow.dbus_client.dbus_proxy", return_value=proxy):
+            assert try_show_existing_daemon() is True
+            proxy.Show.assert_called_once()
 
 
 def test_try_show_existing_daemon_failure():
     from touchflow.dbus_client import try_show_existing_daemon
 
-    with patch("touchflow.dbus_client.dbus_show", side_effect=RuntimeError("no bus")):
+    with patch("touchflow.dbus_client.dbus_available", return_value=False):
         assert try_show_existing_daemon() is False
 
 

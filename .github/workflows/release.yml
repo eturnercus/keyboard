@@ -40,9 +40,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body: |
-            ## TouchFlow Keyboard 1.0.1
+            ## TouchFlow Keyboard 1.0.0
 
-            Исправлен показ клавиатуры на KDE Wayland, кнопка «Показать» в настройках, расширенный touchflow-doctor.
+            Стабильный релиз: D-Bus activation, автозапуск демона, показ клавиатуры на KDE Wayland.
+
+            ### Установка с нуля
+            ```bash
+            curl -fsSL https://github.com/eturnercus/keyboard/releases/download/v1.0.0/touchflow-fresh-install-1.0.0.sh | bash
+            ```
 
             ### Python (production)
             - TouchFlow-Keyboard-1.0.0-*.AppImage — установщик
@@ -63,6 +68,7 @@ jobs:
             dist/*.tar.gz
             dist/*.AppImage
             dist/touchflow-install-*.sh
+            dist/touchflow-fresh-install-*.sh
             dist/touchflow-install-cpp-*.sh
             dist/touchflowd-cpp-*
           generate_release_notes: false

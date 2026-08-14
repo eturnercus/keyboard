@@ -125,6 +125,27 @@ def symlink_or_copy(src: Path, dst: Path) -> None:
         dst.chmod(dst.stat().st_mode | stat.S_IEXEC)
 
 
+def install_dbus_service() -> Path:
+    """D-Bus activation: автозапуск touchflowd при обращении к com.touchflow.Keyboard."""
+    svc_dir = home() / ".local" / "share" / "dbus-1" / "services"
+    svc_dir.mkdir(parents=True, exist_ok=True)
+    dst = svc_dir / "com.touchflow.Keyboard.service"
+    template = (Path(__file__).resolve().parent.parent / "data" / "com.touchflow.Keyboard.service")
+    if template.exists():
+        text = template.read_text(encoding="utf-8")
+    else:
+        text = "[D-BUS Service]\nName=com.touchflow.Keyboard\nExec=TOUCHFLOWD_PATH\n"
+    text = text.replace("TOUCHFLOWD_PATH", resolve_cmd("touchflowd"))
+    dst.write_text(text, encoding="utf-8")
+    return dst
+
+
+def remove_dbus_service() -> None:
+    svc = home() / ".local" / "share" / "dbus-1" / "services" / "com.touchflow.Keyboard.service"
+    if svc.exists():
+        svc.unlink()
+
+
 def ensure_pip_scripts(names: tuple[str, ...] = ()) -> list[str]:
     """Скопировать/связать entry points в ~/.local/bin после pip install."""
     if not names:
@@ -187,8 +208,14 @@ def doctor_report() -> tuple[bool, str]:
         lines.append(f"демон запущен: {'✓' if daemon_active else '✗ НЕ ЗАПУЩЕН'}")
         if not daemon_active:
             ok = False
-            warnings.append("  systemctl --user restart touchflow-daemon")
+            warnings.append("  БЕЗ sudo: systemctl --user restart touchflow-daemon")
             warnings.append("  journalctl --user -u touchflow-daemon -e")
+
+    dbus_svc = home() / ".local" / "share" / "dbus-1" / "services" / "com.touchflow.Keyboard.service"
+    lines.append(f"D-Bus activation: {'✓' if dbus_svc.exists() else '✗'}")
+    if not dbus_svc.exists():
+        ok = False
+        warnings.append("  Переустановите: curl ... | bash")
 
     dbus_ok = False
     dbus_visible = False

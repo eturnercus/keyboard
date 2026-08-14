@@ -1,37 +1,23 @@
 # Changelog
 
-## [1.0.1] - 2026-08-14
+## [1.0.0] - 2026-08-14
 
-### Fixed
-- **Клавиатура не показывалась**: `present()` на Wayland, режим `--virtual-keyboard` (KDE) перенаправляет Show в уже запущенный демон
-- **Встроенная клавиатура ноутбука** больше не блокирует авто-показ (только USB/BT)
-- **touchflow-doctor**: проверка демона, D-Bus, AT-SPI, gtk4-layer-shell, KDE InputMethod
-- **touchflow-settings**: кнопки «Показать клавиатуру» / «Скрыть»
-- **Установка**: зависимости layer-shell, проверка D-Bus после старта демона
+Единый стабильный релиз TouchFlow Keyboard.
 
-## [1.0.0] - 2026-08-14 (patch 2)
+### Исправлено
+- **D-Bus / демон**: activation-файл `com.touchflow.Keyboard.service`, автозапуск демона из настроек и CLI
+- **systemctl --user**: корректные переменные среды, `import-environment`; предупреждение не использовать `sudo`
+- **touchflow-settings crash**: `FloatSpinRow` + subtitle
+- **PATH**: `~/.local/bin` в environment.d и KDE plasma env
+- **Показ клавиатуры**: `present()` на Wayland, KDE `--virtual-keyboard` → D-Bus Show
+- **Встроенная клавиатура** ноутбука не блокирует авто-показ (только USB/BT)
+- **touchflow-doctor**: демон, D-Bus, AT-SPI, layer-shell, KDE InputMethod
+- **Кнопки** «Показать клавиатуру» / «Скрыть» в настройках
+- **gtk-modules** авто-удаление из gtk-4.0/settings.ini
+- **Парсинг Bus=** в `/proc/bus/input/devices`
 
-### Fixed
-- **touchflow-settings crash**: `FloatSpinRow` принимает subtitle (TypeError: Must be number, not function)
-- **PATH**: `~/.local/bin` в `environment.d`, KDE `plasma-workspace/env`, export в install.sh
-- **gtk-modules**: авто-удаление из `gtk-4.0/settings.ini` при установке; `touchflow-doctor --fix`
-
-
-### Python (production)
-- Экранная клавиатура GTK4: мультитач, авто-показ (AT-SPI), обучение, оверлей
-- Языки RU/EN/UK/DE/FR, быстрые кнопки, F-клавиши, numpad
-- `touchflow-settings` — полный GUI настроек (Libadwaita)
-- `touchflow-doctor` — диагностика установки
-- Абсолютные пути в desktop/systemd (настройки находятся из меню KDE)
-- AppImage-установщик, shell-установщик, wheel
-
-### C++ (experimental)
-- `touchflowd-cpp`, `touchflow-settings-cpp`
-- AppImage-установщик C++
-
-### Удаление
-- `scripts/uninstall.sh`, AppImage `TouchFlow-Uninstall`
-- `make uninstall`
-
-### Документация
-- README.md (русский), README.en.md (английский)
+### Возможности
+- Python (production): GTK4, мультитач, AT-SPI авто-показ, обучение, оверлей
+- C++ (experimental): touchflowd-cpp, AppImage
+- Удаление: uninstall.sh, TouchFlow-Uninstall AppImage
+- `scripts/fresh-install.sh` — переустановка с нуля

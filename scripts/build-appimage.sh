@@ -159,18 +159,24 @@ if ! command -v python3 &>/dev/null; then
 fi
 
 echo "==> Скачивание..."
-curl -fsSL "\${REPO}/archive/refs/heads/main.tar.gz" -o "\$TMP/src.tar.gz"
+curl -fsSL "\${REPO}/archive/refs/tags/v${VERSION}.tar.gz" -o "\$TMP/src.tar.gz"
 tar -xzf "\$TMP/src.tar.gz" -C "\$TMP"
-SRC="\$TMP/keyboard-main"
+SRC="\$TMP/keyboard-${VERSION}"
+[[ -d "\$SRC" ]] || SRC="\$TMP/keyboard-main"
 
 echo "==> Установка TouchFlow..."
 bash "\$SRC/scripts/install.sh"
 HEADER
 chmod +x "$INSTALLER_SH"
 
+FRESH_SH="$ROOT/dist/touchflow-fresh-install-${VERSION}.sh"
+cp "$ROOT/scripts/fresh-install.sh" "$FRESH_SH"
+chmod +x "$FRESH_SH"
+
 echo ""
 echo "✓ AppImage:     $OUTPUT"
 echo "✓ Portable tar: $TAR_OUT"
 echo "✓ Shell installer: $INSTALLER_SH"
+echo "✓ Fresh install:   $FRESH_SH"
 echo ""
 echo "  chmod +x $OUTPUT && $OUTPUT"

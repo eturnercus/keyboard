@@ -46,6 +46,9 @@ done
 echo "==> Удаление desktop-файлов..."
 rm -f "${HOME}/.local/share/applications/com.touchflow."*.desktop
 
+echo "==> Удаление D-Bus activation..."
+rm -f "${HOME}/.local/share/dbus-1/services/com.touchflow.Keyboard.service"
+
 echo "==> Удаление Python-пакета..."
 python3 -m pip uninstall -y touchflow-keyboard 2>/dev/null \
     || python3 -m pip uninstall -y touchflow-keyboard --break-system-packages 2>/dev/null \

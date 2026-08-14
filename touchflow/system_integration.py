@@ -11,6 +11,7 @@ from touchflow.paths import (
     ensure_local_bin,
     ensure_path_in_shell_profile,
     ensure_pip_scripts,
+    install_dbus_service,
     local_apps_dir,
     patch_desktop_file,
     resolve_cmd,
@@ -65,7 +66,7 @@ def write_systemd_service(project_root: Path) -> None:
     content = f"""[Unit]
 Description=TouchFlow On-Screen Keyboard (Python)
 Documentation=https://github.com/eturnercus/keyboard
-After=graphical-session.target
+After=graphical-session.target dbus.service
 PartOf=graphical-session.target
 
 [Service]
@@ -75,6 +76,8 @@ Restart=on-failure
 RestartSec=3
 Environment=GTK_USE_PORTAL=0
 Environment=AT_SPI_BUS_ADDRESS=unix:path=/run/user/%U/at-spi/bus
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
+Environment=XDG_RUNTIME_DIR=/run/user/%U
 
 [Install]
 WantedBy=graphical-session.target
@@ -83,6 +86,12 @@ WantedBy=graphical-session.target
 
 
 def enable_systemd_service() -> tuple[bool, str]:
+    if shutil.which("systemctl"):
+        subprocess.run(
+            ["systemctl", "--user", "import-environment", "DISPLAY", "WAYLAND_DISPLAY", "XDG_CURRENT_DESKTOP"],
+            capture_output=True,
+            text=True,
+        )
     for cmd in (
         ["systemctl", "--user", "daemon-reload"],
         ["systemctl", "--user", "enable", "touchflow-daemon.service"],
@@ -175,6 +184,7 @@ def full_system_register(project_root: Path) -> str:
         pass
 
     virtual = install_desktop_files(project_root)
+    install_dbus_service()
     write_systemd_service(project_root)
     ok, msg = enable_systemd_service()
     if not ok:
