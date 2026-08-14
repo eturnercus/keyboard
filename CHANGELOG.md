@@ -1,39 +1,24 @@
 # Changelog
 
-## [1.0.1] - 2026-08-14
-
-### Fixed
-- **Shell-установщик Python** теперь вызывает `scripts/install.sh` (KDE, virtual desktop, systemd)
-- **systemd**: убран `GTK_MODULES` (ломал GTK4), добавлен `AT_SPI_BUS_ADDRESS`
-- **C++ демон**: исправлен `g_application_run(argc, argv)`, показ клавиатуры при старте
-- **C++ AT-SPI**: колбэки в главный поток GTK через `g_idle_add`
-- **C++ настройки**: `touchflow-settings-cpp` (GTK4)
-
-### Added
-- `scripts/uninstall.sh` — удаление Python и C++ версий
-- `systemd/touchflow-daemon-cpp.service`
-- Полная интеграция C++ install (systemd, KDE, settings)
-
 ## [1.0.0] - 2026-08-14
 
-Единый релиз **1.0.0** — Python (основная) и C++ (экспериментальная).
+Единый стабильный релиз TouchFlow Keyboard.
 
-### Python 1.0.0 (production)
+### Python (production)
+- Экранная клавиатура GTK4: мультитач, авто-показ (AT-SPI), обучение, оверлей
+- Языки RU/EN/UK/DE/FR, быстрые кнопки, F-клавиши, numpad
+- `touchflow-settings` — полный GUI настроек (Libadwaita)
+- `touchflow-doctor` — диагностика установки
+- Абсолютные пути в desktop/systemd (настройки находятся из меню KDE)
+- AppImage-установщик, shell-установщик, wheel
 
-- Экранная клавиатура GTK4 с мультитачем, авто-показом (AT-SPI), обучением
-- Языки: RU, EN, UK, DE, FR
-- Быстрые кнопки: копировать, вставить, вырезать, выделить всё, отмена, повтор, поиск
-- Оверлей/джойстик, физические привязки, greeter, D-Bus API
-- Настройки (GTK4/Libadwaita), первый запуск, systemd user service
-- AppImage-установщик, shell-установщик, wheel, sdist
-- **Исправлено**: GTK4 `TypeError` на `connect("pressed")` → `clicked` + gesture
-- **Исправлено**: systemd путь `~/.local/bin/touchflowd`, `Type=simple`
-- **Исправлено**: AppImage ELF (x86_64 + aarch64)
-- **Исправлено**: KDE «Виртуальные клавиатуры» — desktop + kwinrc InputMethod
+### C++ (experimental)
+- `touchflowd-cpp`, `touchflow-settings-cpp`
+- AppImage-установщик C++
 
-### C++ 1.0.0 (experimental)
+### Удаление
+- `scripts/uninstall.sh`, AppImage `TouchFlow-Uninstall`
+- `make uninstall`
 
-- `experimental/touchflow-cpp/` — нативный демон `touchflowd-cpp`
-- GTK4 + libadwaita, uinput/evdev, AT-SPI авто-показ
-- Раскладки RU/EN, быстрые действия, обучение, внешняя клавиатура
-- KDE virtual keyboard desktop, install script
+### Документация
+- README.md (русский), README.en.md (английский)

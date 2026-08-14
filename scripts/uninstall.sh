@@ -39,7 +39,7 @@ systemctl --user daemon-reload 2>/dev/null || true
 
 echo "==> Удаление бинарников..."
 for bin in touchflowd touchflowd-cpp touchflow-settings touchflow-settings-cpp \
-           touchflow-cli touchflow-installer touchflowd-wrapper; do
+           touchflow-cli touchflow-installer touchflowd-wrapper touchflow-doctor; do
     rm -f "${HOME}/.local/bin/${bin}"
 done
 

@@ -25,7 +25,7 @@ def test_systemd_not_hardcoded_usr():
 
 def test_version_is_1_0_0():
     from touchflow import __version__
-    assert __version__ == "1.0.1"
+    assert __version__ == "1.0.0"
 
 
 def test_uninstall_script_exists():
@@ -41,6 +41,11 @@ def test_keyboard_uses_clicked_not_pressed_signal():
     assert 'connect("pressed", self._on_pressed)' not in text
 
 
-def test_cpp_appimage_builder_exists():
-    assert Path("scripts/build-appimage-cpp.sh").exists()
-    assert Path("experimental/touchflow-cpp/bundle-install.sh").exists()
+def test_uninstall_appimage_builder_exists():
+    assert Path("scripts/build-appimage-uninstall.sh").exists()
+
+
+def test_doctor_entry_point():
+    import importlib.metadata
+    eps = {e.name for e in importlib.metadata.entry_points(group="console_scripts")}
+    assert "touchflow-doctor" in eps

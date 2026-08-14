@@ -47,6 +47,7 @@ cp "$ROOT/assets/logo.svg" "$ICONS/com.touchflow.Keyboard.svg" 2>/dev/null || tr
 
 install_cpp_systemd
 register_kde_cpp
+ensure_local_bin_path
 sudo usermod -aG input "$USER" 2>/dev/null || true
 update-desktop-database "$APPS" 2>/dev/null || true
 for cmd in kbuildsycoca6 kbuildsycoca5; do

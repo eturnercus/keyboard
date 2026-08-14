@@ -29,28 +29,35 @@ jobs:
           bash scripts/build-appimage.sh
           file dist/*.AppImage | grep 'ELF.*executable'
 
-      - name: Build C++ (experimental)
+      - name: Build C++ and Uninstall AppImages
         run: |
           bash scripts/build-appimage-cpp.sh
+          bash scripts/build-appimage-uninstall.sh
           file dist/TouchFlow-Keyboard-Cpp-*.AppImage | grep 'ELF.*executable'
+          file dist/TouchFlow-Uninstall-*.AppImage | grep 'ELF.*executable'
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           body: |
-            ## TouchFlow Keyboard 1.0.1
+            ## TouchFlow Keyboard 1.0.0
 
-            ### Исправления
-            - Shell-установщик Python → полная интеграция (KDE, systemd)
-            - C++: рабочий демон, настройки touchflow-settings-cpp
-            - Универсальный удалятор scripts/uninstall.sh
+            Надёжная установка: абсолютные пути, touchflow-doctor, AppImage удаления.
 
-            ### Python 1.0.1 (production)
-            - touchflow-install-1.0.1.sh, AppImage, wheel
+            ### Python (production)
+            - TouchFlow-Keyboard-1.0.0-*.AppImage — установщик
+            - touchflow-install-1.0.0.sh
+            - touchflow-settings, touchflow-doctor
 
-            ### C++ 1.0.1 (experimental)
-            - TouchFlow-Keyboard-Cpp-*.AppImage, touchflow-install-cpp-1.0.1.sh
+            ### C++ (experimental)
+            - TouchFlow-Keyboard-Cpp-1.0.0-*.AppImage
             - touchflow-settings-cpp
+
+            ### Удаление
+            - TouchFlow-Uninstall-1.0.0-*.AppImage
+            - scripts/uninstall.sh
+
+            Документация: README.md (RU), README.en.md (EN)
           files: |
             dist/*.whl
             dist/*.tar.gz

@@ -3,10 +3,18 @@
 from __future__ import annotations
 
 import logging
-import os
 import shutil
 import subprocess
 from pathlib import Path
+
+from touchflow.paths import (
+    ensure_local_bin,
+    ensure_path_in_shell_profile,
+    ensure_pip_scripts,
+    local_apps_dir,
+    patch_desktop_file,
+    resolve_cmd,
+)
 
 log = logging.getLogger(__name__)
 
@@ -22,30 +30,22 @@ def _home() -> Path:
 
 
 def touchflowd_path() -> str:
-    found = shutil.which("touchflowd")
-    if found:
-        return found
-    local = _home() / ".local" / "bin" / "touchflowd"
-    if local.exists():
-        return str(local)
-    return "touchflowd"
+    return resolve_cmd("touchflowd")
 
 
 def install_desktop_files(project_root: Path) -> Path:
-    apps = _home() / ".local" / "share" / "applications"
+    apps = local_apps_dir()
     icons = _home() / ".local" / "share" / "icons" / "hicolor" / "scalable" / "apps"
     apps.mkdir(parents=True, exist_ok=True)
     icons.mkdir(parents=True, exist_ok=True)
 
-    bin_path = touchflowd_path()
+    ensure_pip_scripts()
+
     for name in DESKTOP_FILES:
         src = project_root / "data" / name
         if not src.exists():
             continue
-        text = src.read_text(encoding="utf-8")
-        text = text.replace("Exec=touchflowd --virtual-keyboard", f"Exec={bin_path} --virtual-keyboard")
-        text = text.replace("Exec=touchflowd", f"Exec={bin_path}")
-        text = text.replace("Exec=/usr/bin/touchflowd", f"Exec={bin_path}")
+        text = patch_desktop_file(src.read_text(encoding="utf-8"))
         (apps / name).write_text(text, encoding="utf-8")
         log.info("Installed desktop: %s", name)
 
@@ -57,21 +57,20 @@ def install_desktop_files(project_root: Path) -> Path:
 
 
 def write_systemd_service(project_root: Path) -> None:
-    """Пишет user systemd unit с правильным путём (не /usr/bin)."""
+    """Пишет user systemd unit с абсолютным путём."""
     svc_dir = _home() / ".config" / "systemd" / "user"
     svc_dir.mkdir(parents=True, exist_ok=True)
-    bin_path = touchflowd_path()
-    exec_line = bin_path
+    bin_path = resolve_cmd("touchflowd")
 
     content = f"""[Unit]
-Description=TouchFlow On-Screen Keyboard
+Description=TouchFlow On-Screen Keyboard (Python)
 Documentation=https://github.com/eturnercus/keyboard
 After=graphical-session.target
 PartOf=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart={exec_line}
+ExecStart={bin_path}
 Restart=on-failure
 RestartSec=3
 Environment=GTK_USE_PORTAL=0
@@ -90,7 +89,7 @@ def enable_systemd_service() -> tuple[bool, str]:
         ["systemctl", "--user", "restart", "touchflow-daemon.service"],
     ):
         r = subprocess.run(cmd, capture_output=True, text=True)
-        if r.returncode != 0 and "enable" in cmd[2]:
+        if r.returncode != 0 and len(cmd) > 2 and cmd[2] == "enable":
             return False, r.stderr or r.stdout
     return True, "systemd service started"
 
@@ -99,11 +98,9 @@ def register_kde_virtual_keyboard(virtual_desktop: Path) -> None:
     """Регистрация в KDE: Параметры системы → Виртуальные клавиатуры."""
     if not virtual_desktop.exists():
         return
-    # KDE ожидает имя .desktop (не полный путь) в kwinrc[Wayland] InputMethod
     desktop_id = virtual_desktop.name
     log.info("KDE virtual keyboard desktop: %s", desktop_id)
 
-    # kwriteconfig6 / kwriteconfig5 — выставить TouchFlow в kwinrc
     for writer in ("kwriteconfig6", "kwriteconfig5"):
         if not shutil.which(writer):
             continue
@@ -119,7 +116,6 @@ def register_kde_virtual_keyboard(virtual_desktop: Path) -> None:
         )
         break
 
-    # Уведомить KWin о смене конфига (Plasma 6 / 5)
     subprocess.run(
         ["busctl", "--user", "emit", "/kwinrc", "org.kde.kconfig.notify",
          "ConfigChanged", "a{saay}", "1", "Wayland", "1", "11",
@@ -129,7 +125,6 @@ def register_kde_virtual_keyboard(virtual_desktop: Path) -> None:
 
 
 def register_gnome_screen_keyboard(enable: bool = True) -> None:
-    """GNOME: включить экранную клавиатуру в спец. возможностях."""
     if not shutil.which("gsettings"):
         return
     val = "true" if enable else "false"
@@ -147,6 +142,10 @@ def register_gnome_screen_keyboard(enable: bool = True) -> None:
 
 def full_system_register(project_root: Path) -> str:
     """Полная регистрация после установки."""
+    ensure_local_bin()
+    ensure_path_in_shell_profile()
+    ensure_pip_scripts()
+
     virtual = install_desktop_files(project_root)
     write_systemd_service(project_root)
     ok, msg = enable_systemd_service()
@@ -156,9 +155,8 @@ def full_system_register(project_root: Path) -> str:
     register_kde_virtual_keyboard(virtual)
     register_gnome_screen_keyboard(True)
 
-    # Обновить кэши desktop / KDE
     subprocess.run(
-        ["update-desktop-database", str(_home() / ".local" / "share" / "applications")],
+        ["update-desktop-database", str(local_apps_dir())],
         capture_output=True,
     )
     for cmd in (["kbuildsycoca6", "--noincremental"], ["kbuildsycoca5", "--noincremental"]):
@@ -166,12 +164,19 @@ def full_system_register(project_root: Path) -> str:
             subprocess.run(cmd, capture_output=True)
             break
 
+    from touchflow.paths import doctor_report
+    _, doctor = doctor_report()
+
     hints = [
         "TouchFlow зарегистрирован.",
         "",
-        "KDE/Wayland: Параметры системы → Устройства ввода → Виртуальная клавиатура → TouchFlow",
-        "GNOME: Настройки → Специальные возможности → Экранная клавиатура",
+        f"Настройки: {resolve_cmd('touchflow-settings')}",
+        f"Проверка: touchflow-doctor",
         "",
-        f"Демон: {'запущен' if ok else 'ошибка — см. journalctl --user -u touchflow-daemon'}",
+        "KDE/Wayland: Параметры → Устройства ввода → Виртуальная клавиатура → TouchFlow",
+        "",
+        f"Демон: {'запущен' if ok else 'ошибка — journalctl --user -u touchflow-daemon'}",
+        "",
+        doctor,
     ]
     return "\n".join(hints)
