@@ -12,6 +12,7 @@ gi.require_version("Gdk", "4.0")
 from gi.repository import Gdk, Gtk
 
 from touchflow.config import TouchFlowConfig
+from touchflow.gtk_compat import connect_pressed, new_press_gesture
 from touchflow.key_inject import KeyInjector
 from touchflow.layouts import (
     NUMPAD,
@@ -63,10 +64,10 @@ class TouchKey(Gtk.Button):
         self.connect("clicked", self._on_clicked)
 
         if config.behavior.multitouch_enabled:
-            gesture = Gtk.GestureMultiPress.new()
-            gesture.set_exclusive(False)
-            gesture.connect("pressed", self._on_gesture_pressed)
-            self.add_controller(gesture)
+            gesture = new_press_gesture(exclusive=False)
+            if gesture is not None:
+                connect_pressed(gesture, self._on_gesture_pressed)
+                self.add_controller(gesture)
 
     def _on_clicked(self, *_):
         self._fire()

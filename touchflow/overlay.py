@@ -12,6 +12,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gdk, Gtk
 
 from touchflow.config import OverlayButton, OverlayConfig, TouchFlowConfig
+from touchflow.gtk_compat import connect_pressed, new_press_gesture
 from touchflow.key_inject import KeyInjector
 
 log = logging.getLogger(__name__)
@@ -35,10 +36,11 @@ class OverlayButtonWidget(Gtk.DrawingArea):
         gesture.connect("drag-end", self._on_drag_end)
         self.add_controller(gesture)
 
-        press = Gtk.GestureMultiPress.new()
-        press.connect("pressed", self._on_press)
-        press.connect("released", self._on_release)
-        self.add_controller(press)
+        press = new_press_gesture(exclusive=True)
+        if press is not None:
+            connect_pressed(press, self._on_press)
+            press.connect("released", self._on_release)
+            self.add_controller(press)
 
         self._drag_start = (0.0, 0.0)
 

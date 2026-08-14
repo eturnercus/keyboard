@@ -85,6 +85,24 @@ WantedBy=graphical-session.target
     (svc_dir / "touchflow-daemon.service").write_text(content, encoding="utf-8")
 
 
+def ensure_atspi_bus() -> bool:
+    """Запустить AT-SPI bus для авто-показа при фокусе."""
+    sock = Path(f"/run/user/{os.getuid()}/at-spi/bus")
+    if sock.exists():
+        return True
+    if not shutil.which("systemctl"):
+        return False
+    for unit in ("at-spi-dbus-bus.service", "at-spi-dbus-bus"):
+        subprocess.run(
+            ["systemctl", "--user", "start", unit],
+            capture_output=True,
+            text=True,
+        )
+        if sock.exists():
+            return True
+    return False
+
+
 def enable_systemd_service() -> tuple[bool, str]:
     if shutil.which("systemctl"):
         subprocess.run(
@@ -186,6 +204,7 @@ def full_system_register(project_root: Path) -> str:
     virtual = install_desktop_files(project_root)
     install_dbus_service()
     write_systemd_service(project_root)
+    ensure_atspi_bus()
     ok, msg = enable_systemd_service()
     if not ok:
         log.warning("systemd: %s", msg)

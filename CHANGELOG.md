@@ -4,6 +4,10 @@
 
 Единый стабильный релиз TouchFlow Keyboard.
 
+### Fixed (2026-08-14 patch 2)
+- **Демон падал на Debian 13 / GTK 4.18**: `GestureMultiPress` заменён на `GestureClick` через `gtk_compat`
+- **AT-SPI bus**: предупреждение вместо ошибки; автозапуск `at-spi-dbus-bus.service` при установке
+
 ### Fixed (2026-08-14 patch)
 - **D-Bus Show**: `dbus = BUS_XML` на сервере + клиент через dbus-python (исправлен CompositeObject)
 - **python3-dbus** в зависимостях установки

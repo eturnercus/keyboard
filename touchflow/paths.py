@@ -235,10 +235,12 @@ def doctor_report() -> tuple[bool, str]:
             ok = False
 
     atspi_sock = Path(f"/run/user/{os.getuid()}/at-spi/bus")
-    lines.append(f"AT-SPI bus: {'✓' if atspi_sock.exists() else '✗ нет сокета'}")
-    if not atspi_sock.exists():
-        ok = False
-        warnings.append("  sudo apt install at-spi2-core dbus-x11 && перелогин")
+    if atspi_sock.exists():
+        lines.append("AT-SPI bus: ✓")
+    else:
+        lines.append("AT-SPI bus: ⚠ нет сокета (авто-показ может не работать)")
+        warnings.append("  systemctl --user start at-spi-dbus-bus.service")
+        warnings.append("  KDE: включите «Специальные возможности» в настройках")
 
     atspi_py = False
     try:
